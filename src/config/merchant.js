@@ -3,7 +3,7 @@
 
 export const MERCHANT_CONFIG = {
   // Your UPI ID (e.g., yourname@paytm, yourname@okicici, yourname@ybl)
-  upiId: 'your-merchant@paytm', // Replace with your actual UPI ID
+  upiId: 'jeyareshdj5-2okhdfcbank', // Replace with your personal UPI ID
   
   // Your business/merchant name
   merchantName: 'iPhone Giveaway',
