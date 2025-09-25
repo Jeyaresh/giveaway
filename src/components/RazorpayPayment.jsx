@@ -68,7 +68,7 @@ const RazorpayPayment = ({
 
   const verifyPayment = async (response, orderId) => {
     try {
-      const verifyResponse = await fetch(`${API_BASE_URL}/payments?action=verify-payment`, {
+      const verifyResponse = await fetch(`${API_BASE_URL}/verify-payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
