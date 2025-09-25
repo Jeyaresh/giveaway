@@ -1,7 +1,6 @@
 const Razorpay = require('razorpay');
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
+const { initializeApp } = require('firebase/app');
+const { getFirestore, collection, addDoc, query, where, getDocs } = require('firebase/firestore');
 
 // Check if environment variables are set
 if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_SECRET_KEY) {
@@ -14,28 +13,18 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_SECRET_KEY || 'zO7LDifUUQlsWPbOY2gtF4kI',
 });
 
-// Initialize database - use in-memory database for Vercel
-const db = new sqlite3.Database(':memory:');
+// Initialize Firebase
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID
+};
 
-// Initialize database tables
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS participants (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      phone TEXT,
-      amount REAL NOT NULL,
-      payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-      razorpay_payment_id TEXT,
-      razorpay_order_id TEXT,
-      razorpay_signature TEXT,
-      payment_status TEXT DEFAULT 'pending',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-});
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 // Create order
 const createOrder = async (orderData) => {
@@ -80,18 +69,13 @@ export default async function handler(req, res) {
     const { amount, participantName, participantEmail, participantPhone } = req.body;
 
     // Check if email already exists
-    const existingParticipant = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT id FROM participants WHERE email = ?',
-        [participantEmail],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
-
-    if (existingParticipant) {
+    const emailQuery = query(
+      collection(db, 'participants'),
+      where('email', '==', participantEmail)
+    );
+    const emailSnapshot = await getDocs(emailQuery);
+    
+    if (!emailSnapshot.empty) {
       return res.status(400).json({
         success: false,
         error: 'Email already registered',

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Smartphone, Users, Target, CheckCircle, Gift, CreditCard, Loader } from 'lucide-react'
 import RazorpayPayment from './components/RazorpayPayment'
+import ParticipantsList from './components/ParticipantsList'
 import './App.css'
 
 function App() {
@@ -303,31 +304,7 @@ function App() {
             {showParticipants ? 'Hide' : 'Show'} Participants ({participants.length})
           </button>
           
-          {showParticipants && (
-            <div className="participants-list">
-              {participants.length === 0 ? (
-                <p>No participants yet. Be the first to enter!</p>
-              ) : (
-                <div className="participants-grid">
-                  {participants.map((participant, index) => (
-                    <div key={participant.id} className="participant-card">
-                      <div className="participant-number">#{index + 1}</div>
-                      <div className="participant-info">
-                        <h4>{participant.name}</h4>
-                        <p>{participant.email}</p>
-                        <small>{participant.paymentDate}</small>
-                        {participant.razorpayPaymentId && (
-                          <small className="payment-id">
-                            Payment ID: {participant.razorpayPaymentId.slice(-8)}
-                          </small>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          {showParticipants && <ParticipantsList />}
         </div>
 
         {/* Rules Section */}

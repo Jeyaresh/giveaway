@@ -1,6 +1,7 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
-const sqlite3 = require('sqlite3').verbose();
+const { initializeApp } = require('firebase/app');
+const { getFirestore, collection, addDoc, query, where, getDocs } = require('firebase/firestore');
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -8,28 +9,18 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_SECRET_KEY || 'zO7LDifUUQlsWPbOY2gtF4kI',
 });
 
-// Initialize database - use in-memory database for Vercel
-const db = new sqlite3.Database(':memory:');
+// Initialize Firebase
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID
+};
 
-// Initialize database tables
-db.serialize(() => {
-  db.run(`
-    CREATE TABLE IF NOT EXISTS participants (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      phone TEXT,
-      amount REAL NOT NULL,
-      payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-      razorpay_payment_id TEXT,
-      razorpay_order_id TEXT,
-      razorpay_signature TEXT,
-      payment_status TEXT DEFAULT 'pending',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-});
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 // Verify payment signature
 const verifyPayment = (razorpay_payment_id, razorpay_order_id, razorpay_signature) => {
@@ -115,18 +106,13 @@ export default async function handler(req, res) {
     }
 
     // Check if payment is already processed
-    const existingPayment = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT id FROM participants WHERE razorpay_payment_id = ?',
-        [razorpay_payment_id],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
-
-    if (existingPayment) {
+    const paymentQuery = query(
+      collection(db, 'participants'),
+      where('razorpayPaymentId', '==', razorpay_payment_id)
+    );
+    const paymentSnapshot = await getDocs(paymentQuery);
+    
+    if (!paymentSnapshot.empty) {
       return res.status(400).json({
         success: false,
         error: 'Payment already processed',
@@ -134,45 +120,47 @@ export default async function handler(req, res) {
       });
     }
 
-    // Insert participant
-    const participantStmt = db.prepare(`
-      INSERT INTO participants (
-        name, email, phone, amount, razorpay_payment_id, 
-        razorpay_order_id, razorpay_signature, payment_status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+    // Add participant to Firebase
+    const participantData = {
+      name: participantName,
+      email: participantEmail,
+      phone: participantPhone || null,
+      amount: paymentDetails.amount / 100,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpayOrderId: razorpay_order_id,
+      razorpaySignature: razorpay_signature,
+      paymentStatus: 'completed',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
 
-    participantStmt.run([
-      participantName,
-      participantEmail,
-      participantPhone || null,
-      paymentDetails.amount / 100,
-      razorpay_payment_id,
-      razorpay_order_id,
-      razorpay_signature,
-      'completed'
-    ], function(err) {
-      if (err) {
-        console.error('Error inserting participant:', err);
-        return res.status(500).json({
-          success: false,
-          error: 'Database error',
-          message: 'Failed to save participant data'
-        });
+    const participantRef = await addDoc(collection(db, 'participants'), participantData);
+    
+    // Add transaction details
+    const transactionData = {
+      participantId: participantRef.id,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpayOrderId: razorpay_order_id,
+      amount: paymentDetails.amount / 100,
+      currency: paymentDetails.currency,
+      status: paymentDetails.status,
+      paymentMethod: paymentDetails.method,
+      createdAt: new Date().toISOString()
+    };
+
+    await addDoc(collection(db, 'transactions'), transactionData);
+
+    console.log(`Payment verified and saved for participant ${participantRef.id}`);
+
+    res.json({
+      success: true,
+      message: 'Payment verified successfully',
+      participant: {
+        id: participantRef.id,
+        name: participantName,
+        email: participantEmail,
+        paymentId: razorpay_payment_id
       }
-
-      console.log(`Payment verified and saved for participant ${this.lastID}`);
-
-      res.json({
-        success: true,
-        message: 'Payment verified successfully',
-        participant: {
-          id: this.lastID,
-          name: participantName,
-          email: participantEmail,
-          paymentId: razorpay_payment_id
-        }
-      });
     });
 
   } catch (error) {

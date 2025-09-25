@@ -31,36 +31,35 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Get completed participants
+    // Get all participants ordered by creation date
     const participantsQuery = query(
       collection(db, 'participants'),
-      where('paymentStatus', '==', 'completed')
+      orderBy('createdAt', 'desc')
     );
     const participantsSnapshot = await getDocs(participantsQuery);
     
     const participants = [];
     participantsSnapshot.forEach((doc) => {
-      participants.push({ id: doc.id, ...doc.data() });
+      participants.push({ 
+        id: doc.id, 
+        ...doc.data(),
+        // Format dates for display
+        createdAt: doc.data().createdAt ? new Date(doc.data().createdAt).toLocaleString() : 'Unknown',
+        updatedAt: doc.data().updatedAt ? new Date(doc.data().updatedAt).toLocaleString() : 'Unknown'
+      });
     });
-
-    const totalParticipants = participants.length;
-    const totalCollected = participants.reduce((sum, participant) => sum + (participant.amount || 0), 0);
-    const averageAmount = totalParticipants > 0 ? totalCollected / totalParticipants : 0;
 
     res.json({
       success: true,
-      stats: {
-        totalParticipants,
-        totalCollected,
-        averageAmount
-      }
+      participants,
+      totalCount: participants.length
     });
 
   } catch (error) {
-    console.error('Error fetching stats:', error);
+    console.error('Error fetching participants:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch statistics',
+      error: 'Failed to fetch participants',
       details: error.message
     });
   }
