@@ -15,19 +15,56 @@ function App() {
   const [paymentError, setPaymentError] = useState('')
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [currentParticipantData, setCurrentParticipantData] = useState(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const targetAmount = 100000 // ₹1 lakh
   const entryFee = 10 // ₹10 per entry
   const productValue = 80000 // ₹80,000 iPhone
 
-  useEffect(() => {
-    // Load saved data from localStorage
-    const savedParticipants = localStorage.getItem('giveawayParticipants')
-    if (savedParticipants) {
-      const parsed = JSON.parse(savedParticipants)
-      setParticipants(parsed)
-      setTotalCollected(parsed.length * entryFee)
+  // Function to fetch real-time data from Firebase
+  const fetchFirebaseData = async (showLoading = false) => {
+    try {
+      if (showLoading) setIsRefreshing(true);
+      
+      const [statsResponse, participantsResponse] = await Promise.all([
+        fetch('/api/stats'),
+        fetch('/api/participants')
+      ]);
+
+      if (statsResponse.ok && participantsResponse.ok) {
+        const statsData = await statsResponse.json();
+        const participantsData = await participantsResponse.json();
+
+        if (statsData.success) {
+          setTotalCollected(statsData.stats.totalCollected);
+        }
+
+        if (participantsData.success) {
+          setParticipants(participantsData.participants);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching Firebase data:', error);
+      // Fallback to localStorage if Firebase fails
+      const savedParticipants = localStorage.getItem('giveawayParticipants');
+      if (savedParticipants) {
+        const parsed = JSON.parse(savedParticipants);
+        setParticipants(parsed);
+        setTotalCollected(parsed.length * entryFee);
+      }
+    } finally {
+      if (showLoading) setIsRefreshing(false);
     }
+  };
+
+  useEffect(() => {
+    // Fetch initial data from Firebase
+    fetchFirebaseData();
+    
+    // Set up interval to refresh data every 30 seconds
+    const interval = setInterval(fetchFirebaseData, 30000);
+    
+    return () => clearInterval(interval);
   }, [])
 
   const handlePaymentInitiation = (e) => {
@@ -38,11 +75,8 @@ function App() {
       return
     }
 
-    // Check if email already exists
-    if (participants.some(p => p.email === participantEmail)) {
-      setPaymentError('This email has already participated!')
-      return
-    }
+    // Check if email already exists (this will be double-checked by the backend)
+    // The backend will handle the actual duplicate check against Firebase
 
     // Prepare participant data
     const participantData = {
@@ -59,32 +93,16 @@ function App() {
     setShowPaymentModal(true)
   }
 
-  const handlePaymentSuccess = (response, participantData) => {
+  const handlePaymentSuccess = async (response, participantData) => {
     console.log('Payment successful:', response)
     
-    const newParticipant = {
-      ...participantData,
-      paymentDate: new Date().toLocaleString(),
-      razorpayPaymentId: response.razorpay_payment_id,
-      razorpayOrderId: response.razorpay_order_id,
-      razorpaySignature: response.razorpay_signature
-    }
-
-    const updatedParticipants = [...participants, newParticipant]
-    const newTotalCollected = updatedParticipants.length * entryFee
+    // Refresh data from Firebase to get the latest statistics
+    await fetchFirebaseData()
     
-    console.log('Updated participants:', updatedParticipants.length)
-    console.log('New total collected:', newTotalCollected)
-    
-    setParticipants(updatedParticipants)
-    setTotalCollected(newTotalCollected)
     setIsPaid(true)
     setIsPaymentProcessing(false)
     setShowPaymentModal(false)
     setPaymentError('')
-    
-    // Save to localStorage
-    localStorage.setItem('giveawayParticipants', JSON.stringify(updatedParticipants))
 
     // Reset form
     setParticipantName('')
@@ -149,6 +167,17 @@ function App() {
         {/* Progress Section */}
         <div className="progress-section">
           <div className="progress-header">
+            <div className="refresh-stats">
+              <button 
+                onClick={() => fetchFirebaseData(true)}
+                disabled={isRefreshing}
+                className="refresh-button"
+                title="Refresh data from Firebase"
+              >
+                {isRefreshing ? <Loader className="spinner" /> : '🔄'} 
+                {isRefreshing ? ' Refreshing...' : ' Refresh'}
+              </button>
+            </div>
             <div className="progress-stat">
               <Target className="stat-icon" />
               <div>
