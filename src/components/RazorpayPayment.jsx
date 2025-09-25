@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { RAZORPAY_CONFIG } from '../config/merchant';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 const RazorpayPayment = ({ 
   amount, 
