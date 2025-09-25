@@ -37,7 +37,7 @@ const RazorpayPayment = ({
   const createOrder = async (amount) => {
     try {
       console.log('Creating order via backend for amount:', amount);
-      const response = await fetch(`${API_BASE_URL}/payments?action=create-order`, {
+      const response = await fetch(`${API_BASE_URL}/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
