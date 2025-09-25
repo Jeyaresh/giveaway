@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Smartphone, Users, Target, CheckCircle, Gift, CreditCard, Loader } from 'lucide-react'
 import RazorpayPayment from './components/RazorpayPayment'
 import ParticipantsList from './components/ParticipantsList'
+import TransparencyReport from './pages/TransparencyReport'
 import './App.css'
 
-function App() {
+// Main Giveaway Page Component
+function GiveawayPage() {
   const [participants, setParticipants] = useState([])
   const [totalCollected, setTotalCollected] = useState(0)
   const [participantName, setParticipantName] = useState('')
@@ -234,8 +237,8 @@ function App() {
               <p>✅ All payments are verified and auditable</p>
             </div>
             <div className="transparency-actions">
-              <button 
-                onClick={() => window.open('/api/payments/transparency', '_blank')}
+              <button
+                onClick={() => window.open('/transparency', '_blank')}
                 className="transparency-button"
               >
                 📊 View Full Transparency Report
@@ -352,8 +355,8 @@ function App() {
       <footer className="footer">
         <p>&copy; 2024 iPhone Giveaway. All rights reserved.</p>
         <div className="privacy-links">
-          <button 
-            onClick={() => window.open('/api/payments/transparency', '_blank')}
+          <button
+            onClick={() => window.open('/transparency', '_blank')}
             className="privacy-link"
           >
             📊 Transparency Report
@@ -367,6 +370,18 @@ function App() {
         </div>
       </footer>
     </div>
+  )
+}
+
+// Main App Component with Routing
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<GiveawayPage />} />
+        <Route path="/transparency" element={<TransparencyReport />} />
+      </Routes>
+    </Router>
   )
 }
 
