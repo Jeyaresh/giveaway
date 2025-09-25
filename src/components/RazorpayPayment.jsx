@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { RAZORPAY_CONFIG } from '../config/merchant';
 
-const API_BASE_URL = '/api'; // Updated for Vercel deployment
+const API_BASE_URL = '/api'; // Production API endpoint
 
 const RazorpayPayment = ({ 
   amount, 
