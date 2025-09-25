@@ -3,20 +3,39 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_SECRET_KEY,
-});
-
-// Initialize database
-const dbDir = path.join(process.cwd(), 'database');
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
+// Check if environment variables are set
+if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_SECRET_KEY) {
+  console.error('Missing Razorpay environment variables');
 }
 
-const dbPath = path.join(dbDir, 'giveaway.db');
-const db = new sqlite3.Database(dbPath);
+// Initialize Razorpay
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_RLr3XtQd5owAlC',
+  key_secret: process.env.RAZORPAY_SECRET_KEY || 'zO7LDifUUQlsWPbOY2gtF4kI',
+});
+
+// Initialize database - use in-memory database for Vercel
+const db = new sqlite3.Database(':memory:');
+
+// Initialize database tables
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS participants (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      phone TEXT,
+      amount REAL NOT NULL,
+      payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+      razorpay_payment_id TEXT,
+      razorpay_order_id TEXT,
+      razorpay_signature TEXT,
+      payment_status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+});
 
 // Create order
 const createOrder = async (orderData) => {
@@ -41,22 +60,23 @@ const createOrder = async (orderData) => {
 };
 
 export default async function handler(req, res) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
   try {
+    // Enable CORS
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+    if (req.method === 'OPTIONS') {
+      res.status(200).end();
+      return;
+    }
+
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    console.log('Create order request received:', req.body);
     const { amount, participantName, participantEmail, participantPhone } = req.body;
 
     // Check if email already exists
@@ -114,7 +134,8 @@ export default async function handler(req, res) {
     res.status(500).json({
       success: false,
       error: 'Failed to create payment order',
-      message: 'Please try again later'
+      message: 'Please try again later',
+      details: error.message
     });
   }
 }
