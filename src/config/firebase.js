@@ -1,15 +1,14 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
-// Firebase configuration
-// Replace these with your actual Firebase config
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.VITE_FIREBASE_API_KEY || "your-api-key",
-  authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || "your-project.firebaseapp.com",
-  projectId: process.env.VITE_FIREBASE_PROJECT_ID || "your-project-id",
-  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || "your-project.appspot.com",
-  messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: process.env.VITE_FIREBASE_APP_ID || "your-app-id"
+  apiKey: "AIzaSyCp18SDoPQ8qCs5-KoYt5m_DGU78vkxa60",
+  authDomain: "giveaway-3966c.firebaseapp.com",
+  projectId: "giveaway-3966c",
+  storageBucket: "giveaway-3966c.firebasestorage.app",
+  messagingSenderId: "392424309109",
+  appId: "1:392424309109:web:9db9733d590f57e54c133c"
 };
 
 // Initialize Firebase
