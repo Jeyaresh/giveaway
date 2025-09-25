@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "api/payments.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "env": {
+    "RAZORPAY_KEY_ID": "rzp_live_RLr3XtQd5owAlC",
+    "RAZORPAY_SECRET_KEY": "zO7LDifUUQlsWPbOY2gtF4kI",
+    "NODE_ENV": "production"
+  }
+}

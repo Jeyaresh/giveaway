@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { RAZORPAY_CONFIG } from '../config/merchant';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = '/api';
 
 const RazorpayPayment = ({ 
   amount, 
@@ -37,7 +37,7 @@ const RazorpayPayment = ({
   const createOrder = async (amount) => {
     try {
       console.log('Creating order via backend for amount:', amount);
-      const response = await fetch(`${API_BASE_URL}/payments/create-order`, {
+      const response = await fetch(`${API_BASE_URL}/payments?action=create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ const RazorpayPayment = ({
 
   const verifyPayment = async (response, orderId) => {
     try {
-      const verifyResponse = await fetch(`${API_BASE_URL}/payments/verify-payment`, {
+      const verifyResponse = await fetch(`${API_BASE_URL}/payments?action=verify-payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
