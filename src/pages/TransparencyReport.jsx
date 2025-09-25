@@ -139,7 +139,7 @@ const TransparencyReport = () => {
       {/* Header */}
       <header className="transparency-header">
         <div className="header-content">
-          <Link to="/" className="back-button">
+          <Link to="/#/" className="back-button">
             <ArrowLeft className="icon" />
             Back to Giveaway
           </Link>
@@ -298,7 +298,7 @@ const TransparencyReport = () => {
             </ul>
           </div>
           <div className="footer-actions">
-            <Link to="/" className="footer-link">
+            <Link to="/#/" className="footer-link">
               <ArrowLeft className="icon" />
               Back to Giveaway
             </Link>

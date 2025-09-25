@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { HashRouter as Router, Routes, Route } from 'react-router-dom'
 import { Smartphone, Users, Target, CheckCircle, Gift, CreditCard, Loader } from 'lucide-react'
 import RazorpayPayment from './components/RazorpayPayment'
 import ParticipantsList from './components/ParticipantsList'
@@ -238,7 +238,7 @@ function GiveawayPage() {
             </div>
             <div className="transparency-actions">
               <button
-                onClick={() => window.open('/transparency', '_blank')}
+                onClick={() => window.open('/#/transparency', '_blank')}
                 className="transparency-button"
               >
                 📊 View Full Transparency Report
@@ -356,7 +356,7 @@ function GiveawayPage() {
         <p>&copy; 2024 iPhone Giveaway. All rights reserved.</p>
         <div className="privacy-links">
           <button
-            onClick={() => window.open('/transparency', '_blank')}
+            onClick={() => window.open('/#/transparency', '_blank')}
             className="privacy-link"
           >
             📊 Transparency Report
