@@ -1,9 +1,12 @@
-// Merchant Configuration for Real UPI Payments
-// Replace these with your actual merchant details
+// Razorpay Configuration
+// Replace these with your actual Razorpay details
 
-export const MERCHANT_CONFIG = {
-  // Your UPI ID (e.g., yourname@paytm, yourname@okicici, yourname@ybl)
-  upiId: 'jeyareshdj5-2@hdfcbank', // Fixed UPI ID format with @ symbol
+export const RAZORPAY_CONFIG = {
+  // Your Razorpay live key ID (replace with your actual live key)
+  keyId: 'rzp_live_RLr3XtQd5owAlC',
+  
+  // Secret key is stored securely on backend server
+  // NEVER expose secret keys in frontend code
   
   // Your business/merchant name
   merchantName: 'iPhone Giveaway',
@@ -24,19 +27,14 @@ export const MERCHANT_CONFIG = {
 };
 
 // Instructions for setup:
-// 1. Get a UPI ID from any UPI provider:
-//    - Paytm: Create account and get UPI ID
-//    - PhonePe: Create merchant account
-//    - Google Pay: Set up business profile
-//    - Bank UPI: Use your bank's UPI service
+// 1. Get Razorpay account from https://razorpay.com
+// 2. Get your API keys from Razorpay dashboard
+// 3. Replace the keyId with your actual Razorpay key
+// 4. For production, use live keys instead of test keys
 //
-// 2. Replace 'your-merchant@paytm' with your actual UPI ID
-//
-// 3. Test with small amounts first
-//
-// 4. For production, you'll need:
-//    - Backend server to verify payments
+// 5. For production, you'll need:
+//    - Backend server to create orders and verify payments
 //    - Webhook handling for payment confirmations
 //    - Database to store transaction records
 
-export default MERCHANT_CONFIG;
+export default RAZORPAY_CONFIG;

@@ -317,33 +317,71 @@ body {
 }
 
 
-.clear-data-button {
-  background: #dc3545;
+/* Data Security & Transparency Notice */
+.data-security-notice {
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.clear-data-button:hover {
-  background: #c82333;
-}
-
-.clear-data-section {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 15px;
   padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  text-align: center;
+  border-radius: 12px;
+  margin: 20px 0;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* UPI Payment Modal */
-.upi-payment-modal {
+.security-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.security-icon {
+  font-size: 20px;
+}
+
+.transparency-info {
+  text-align: left;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.transparency-info p {
+  margin: 8px 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.transparency-actions {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.transparency-button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.transparency-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Razorpay Payment Modal */
+.razorpay-payment-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -357,7 +395,7 @@ body {
   backdrop-filter: blur(5px);
 }
 
-.upi-payment-content {
+.razorpay-payment-content {
   background: white;
   border-radius: 20px;
   padding: 30px;
@@ -378,7 +416,7 @@ body {
   }
 }
 
-.upi-header {
+.razorpay-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -387,7 +425,7 @@ body {
   border-bottom: 2px solid #f0f0f0;
 }
 
-.upi-header h3 {
+.razorpay-header h3 {
   margin: 0;
   color: #333;
   font-size: 1.5rem;
@@ -411,21 +449,21 @@ body {
   color: #333;
 }
 
-.upi-instruction {
+.razorpay-instruction {
   text-align: center;
   color: #666;
   margin-bottom: 25px;
   font-size: 1rem;
 }
 
-.upi-apps {
+.razorpay-apps {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 15px;
   margin-bottom: 25px;
 }
 
-.upi-app-btn {
+.razorpay-app-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -440,13 +478,13 @@ body {
   font-weight: 600;
 }
 
-.upi-app-btn:hover:not(:disabled) {
+.razorpay-app-btn:hover:not(:disabled) {
   border-color: #667eea;
   background: #f8f9ff;
   transform: translateY(-2px);
 }
 
-.upi-app-btn:disabled {
+.razorpay-app-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -470,7 +508,7 @@ body {
   background: #f8f9ff;
 }
 
-.generic-upi:hover:not(:disabled) {
+.razorpay:hover:not(:disabled) {
   border-color: #667eea;
   background: #f8f9ff;
 }
@@ -490,13 +528,28 @@ body {
   margin: 0 auto 10px;
 }
 
-.upi-footer {
+.loading-indicator {
+  text-align: center;
+  padding: 20px;
+}
+
+.loading-indicator .spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4285f4;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px;
+}
+
+.razorpay-footer {
   text-align: center;
   padding-top: 15px;
   border-top: 1px solid #f0f0f0;
 }
 
-.upi-footer small {
+.razorpay-footer small {
   color: #999;
   font-size: 0.8rem;
 }
@@ -673,6 +726,32 @@ body {
   padding: 20px;
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.9rem;
+}
+
+.privacy-links {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.privacy-link {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.privacy-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
 }
 
 /* Responsive Design */

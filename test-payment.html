@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Payment</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <h1>Test Razorpay Payment</h1>
+    <button onclick="testPayment()">Test Payment</button>
+    
+    <script>
+        async function testPayment() {
+            try {
+                console.log('Creating order via backend...');
+                
+                // Create order on backend
+                const response = await fetch('http://localhost:3001/api/payments/create-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        amount: 10,
+                        participantName: 'Test User',
+                        participantEmail: 'test@example.com',
+                        participantPhone: '1234567890'
+                    })
+                });
+
+                console.log('Backend response status:', response.status);
+                const data = await response.json();
+                console.log('Backend response data:', data);
+
+                if (!data.success) {
+                    throw new Error(data.message || 'Failed to create order');
+                }
+
+                console.log('Order created successfully:', data.order);
+                
+                // Open Razorpay checkout
+                const options = {
+                    key: 'rzp_live_RLr3XtQd5owAlC',
+                    amount: data.order.amount,
+                    currency: data.order.currency,
+                    order_id: data.order.id,
+                    name: 'iPhone Giveaway',
+                    description: 'Test Payment',
+                    handler: function (response) {
+                        console.log('Payment successful:', response);
+                        alert('Payment successful! Payment ID: ' + response.razorpay_payment_id);
+                    },
+                    prefill: {
+                        name: 'Test User',
+                        email: 'test@example.com',
+                    },
+                    theme: {
+                        color: '#667eea'
+                    }
+                };
+
+                console.log('Opening Razorpay with options:', options);
+                const razorpay = new Razorpay(options);
+                razorpay.on('payment.failed', function (response) {
+                    console.error('Payment failed:', response.error);
+                    alert('Payment failed: ' + response.error.description);
+                });
+                razorpay.open();
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
