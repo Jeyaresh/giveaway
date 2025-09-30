@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { HashRouter as Router, Routes, Route } from 'react-router-dom'
-import { Smartphone, Users, Target, CheckCircle, Gift, CreditCard, Loader } from 'lucide-react'
+import { BookOpen, Users, Target, CheckCircle, Gift, CreditCard, Loader, Download } from 'lucide-react'
 import RazorpayPayment from './components/RazorpayPayment'
 import ParticipantsList from './components/ParticipantsList'
 import TransparencyReport from './pages/TransparencyReport'
 import './App.css'
 
-// Main Giveaway Page Component
-function GiveawayPage() {
+// Main Ebook Sales Page Component
+function EbookSalesPage() {
   const [participants, setParticipants] = useState([])
   const [totalCollected, setTotalCollected] = useState(0)
   const [participantName, setParticipantName] = useState('')
@@ -19,10 +19,11 @@ function GiveawayPage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [currentParticipantData, setCurrentParticipantData] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [showDownloadModal, setShowDownloadModal] = useState(false)
 
   const targetAmount = 100000 // ₹1 lakh
-  const entryFee = 10 // ₹10 per entry
-  const productValue = 80000 // ₹80,000 iPhone
+  const ebookPrice = 10 // ₹10 for ebook
+  const giveawayPrize = 80000 // ₹80,000 iPhone
 
   // Function to fetch real-time data from Firebase
   const fetchFirebaseData = async (showLoading = false) => {
@@ -49,11 +50,11 @@ function GiveawayPage() {
     } catch (error) {
       console.error('Error fetching Firebase data:', error);
       // Fallback to localStorage if Firebase fails
-      const savedParticipants = localStorage.getItem('giveawayParticipants');
+      const savedParticipants = localStorage.getItem('ebookCustomers');
       if (savedParticipants) {
         const parsed = JSON.parse(savedParticipants);
         setParticipants(parsed);
-        setTotalCollected(parsed.length * entryFee);
+        setTotalCollected(parsed.length * ebookPrice);
       }
     } finally {
       if (showLoading) setIsRefreshing(false);
@@ -81,22 +82,22 @@ function GiveawayPage() {
     // Check if email already exists (this will be double-checked by the backend)
     // The backend will handle the actual duplicate check against Firebase
 
-    // Prepare participant data
-    const participantData = {
+    // Prepare customer data
+    const customerData = {
       id: Date.now(),
       name: participantName,
       email: participantEmail,
-      amount: entryFee
+      amount: ebookPrice
     }
 
     // Real payment mode with Razorpay
-    setCurrentParticipantData(participantData)
+    setCurrentParticipantData(customerData)
     setIsPaymentProcessing(true)
     setPaymentError('')
     setShowPaymentModal(true)
   }
 
-  const handlePaymentSuccess = async (response, participantData) => {
+  const handlePaymentSuccess = async (response, customerData) => {
     console.log('Payment successful:', response)
     
     // Refresh data from Firebase to get the latest statistics
@@ -106,6 +107,7 @@ function GiveawayPage() {
     setIsPaymentProcessing(false)
     setShowPaymentModal(false)
     setPaymentError('')
+    setShowDownloadModal(true)
 
     // Reset form
     setParticipantName('')
@@ -128,6 +130,14 @@ function GiveawayPage() {
 
   const resetPayment = () => {
     setIsPaid(false)
+    setShowDownloadModal(false)
+  }
+
+  const downloadEbook = () => {
+    // In a real implementation, this would download the actual ebook file
+    // For now, we'll show a success message
+    alert('Ebook download started! Check your email for the download link.')
+    setShowDownloadModal(false)
   }
 
   // Data security: No clear data functionality - all data is permanently stored for transparency
@@ -148,22 +158,33 @@ function GiveawayPage() {
   return (
     <div className="app">
       <header className="header">
-        <h1>🎉 iPhone Giveaway</h1>
-        <p>Win an iPhone worth ₹80,000 for just ₹10!</p>
+        <h1>📚 Digital Success Guide</h1>
+        <p>Buy our premium ebook for ₹10 and get a chance to win an iPhone worth ₹80,000!</p>
       </header>
 
       <main className="main">
         {/* Product Display */}
         <div className="product-card">
           <div className="product-image">
-            <Smartphone size={120} />
+            <BookOpen size={120} />
           </div>
           <div className="product-details">
-            <h2>iPhone 15 Pro</h2>
-            <p className="product-value">Worth ₹{productValue.toLocaleString()}</p>
+            <h2>Digital Success Guide</h2>
+            <p className="product-value">Premium Ebook - ₹{ebookPrice}</p>
             <p className="product-description">
-              Brand new iPhone 15 Pro with latest features and premium build quality.
+              A comprehensive guide to digital success, packed with actionable insights and strategies. 
+              Plus, every purchase makes you eligible for our iPhone giveaway!
             </p>
+            <div className="ebook-features">
+              <h4>What's Inside:</h4>
+              <ul>
+                <li>✅ 50+ pages of expert content</li>
+                <li>✅ Practical strategies and tips</li>
+                <li>✅ Real-world case studies</li>
+                <li>✅ Instant download after purchase</li>
+                <li>✅ Lifetime access to updates</li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -185,21 +206,21 @@ function GiveawayPage() {
               <Target className="stat-icon" />
               <div>
                 <span className="stat-value">₹{totalCollected.toLocaleString()}</span>
-                <span className="stat-label">Collected</span>
+                <span className="stat-label">Total Sales</span>
               </div>
             </div>
             <div className="progress-stat">
               <Users className="stat-icon" />
               <div>
                 <span className="stat-value">{participants.length}</span>
-                <span className="stat-label">Participants</span>
+                <span className="stat-label">Customers</span>
               </div>
             </div>
             <div className="progress-stat">
               <Gift className="stat-icon" />
-      <div>
+              <div>
                 <span className="stat-value">₹{targetAmount.toLocaleString()}</span>
-                <span className="stat-label">Target</span>
+                <span className="stat-label">Giveaway Target</span>
               </div>
             </div>
           </div>
@@ -211,48 +232,38 @@ function GiveawayPage() {
             ></div>
       </div>
           <p className="progress-text">
-            <strong>{progressPercentage.toFixed(1)}% complete</strong>
+            <strong>{progressPercentage.toFixed(1)}% towards giveaway target</strong>
             <br />
-            <small>₹{totalCollected.toLocaleString()} of ₹{targetAmount.toLocaleString()} ({participants.length} participants)</small>
+            <small>₹{totalCollected.toLocaleString()} of ₹{targetAmount.toLocaleString()} ({participants.length} customers)</small>
             {isTargetReached && (
               <span className="target-reached">
                 <CheckCircle size={16} />
-                Target Reached!
+                Giveaway Target Reached!
               </span>
             )}
-        </p>
+          </p>
       </div>
 
-        {/* Data Security & Transparency Notice */}
-        {participants.length > 0 && (
-          <div className="data-security-notice">
-            <div className="security-badge">
-              <span className="security-icon">🔒</span>
-              <span>All data is securely stored and transparent</span>
-            </div>
-            <div className="transparency-info">
-              <p>✅ Data is encrypted and stored securely</p>
-              <p>✅ All transactions are permanently recorded for transparency</p>
-              <p>✅ No data can be deleted to maintain integrity</p>
-              <p>✅ All payments are verified and auditable</p>
-            </div>
-            <div className="transparency-actions">
-              <button
-                onClick={() => window.open('/#/transparency', '_blank')}
-                className="transparency-button"
-              >
-                📊 View Full Transparency Report
-              </button>
-            </div>
+        {/* Legal Compliance Notice */}
+        <div className="legal-notice">
+          <div className="legal-badge">
+            <span className="legal-icon">⚖️</span>
+            <span>Legal & Transparent</span>
           </div>
-        )}
+          <div className="legal-info">
+            <p>✅ You are purchasing a digital product (ebook)</p>
+            <p>✅ Giveaway entry is a bonus benefit with purchase</p>
+            <p>✅ All transactions are recorded and transparent</p>
+            <p>✅ Winner selection will be random and fair</p>
+          </div>
+        </div>
 
         {/* Payment Form */}
         {!isTargetReached && (
           <div className="payment-section">
             {!isPaid ? (
               <form onSubmit={handlePaymentInitiation} className="payment-form">
-                <h3>Enter Giveaway - ₹{entryFee}</h3>
+                <h3>Buy Ebook - ₹{ebookPrice}</h3>
                 <div className="form-group">
                   <label htmlFor="name">Full Name</label>
                   <input
@@ -295,7 +306,7 @@ function GiveawayPage() {
                   ) : (
                     <>
                       <CreditCard size={20} />
-                      Pay ₹{entryFee} & Enter Giveaway
+                      Buy Ebook for ₹{ebookPrice}
                     </>
                   )}
                 </button>
@@ -306,10 +317,10 @@ function GiveawayPage() {
             ) : (
               <div className="payment-success">
                 <CheckCircle size={48} className="success-icon" />
-                <h3>Payment Successful!</h3>
-                <p>You have successfully entered the giveaway.</p>
+                <h3>Purchase Successful!</h3>
+                <p>You have successfully purchased the ebook and are now eligible for the giveaway.</p>
                 <button onClick={resetPayment} className="reset-button">
-                  Enter Again
+                  Buy Another Copy
                 </button>
               </div>
             )}
@@ -319,7 +330,7 @@ function GiveawayPage() {
         {/* Razorpay Payment Modal */}
         {showPaymentModal && currentParticipantData && (
           <RazorpayPayment
-            amount={entryFee}
+            amount={ebookPrice}
             participantData={currentParticipantData}
             onSuccess={handlePaymentSuccess}
             onError={handlePaymentError}
@@ -327,33 +338,54 @@ function GiveawayPage() {
           />
         )}
 
-        {/* Participants Section */}
+        {/* Download Modal */}
+        {showDownloadModal && (
+          <div className="download-modal">
+            <div className="download-content">
+              <h3>🎉 Purchase Complete!</h3>
+              <p>Your ebook is ready for download. You're also now eligible for our iPhone giveaway!</p>
+              <button onClick={downloadEbook} className="download-button">
+                <Download size={20} />
+                Download Ebook
+              </button>
+              <button onClick={() => setShowDownloadModal(false)} className="close-download">
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Customers Section */}
         <div className="participants-section">
           <button 
             onClick={() => setShowParticipants(!showParticipants)}
             className="toggle-participants"
           >
-            {showParticipants ? 'Hide' : 'Show'} Participants ({participants.length})
+            {showParticipants ? 'Hide' : 'Show'} Customers ({participants.length})
           </button>
           
           {showParticipants && <ParticipantsList />}
         </div>
 
-        {/* Rules Section */}
+        {/* Terms and Conditions */}
         <div className="rules-section">
-          <h3>Giveaway Rules</h3>
+          <h3>Terms & Conditions</h3>
           <ul>
-            <li>Each participant can pay ₹10 only once</li>
-            <li>Total target is ₹{targetAmount.toLocaleString()}</li>
+            <li>You are purchasing a digital ebook for ₹10</li>
+            <li>Giveaway entry is a bonus benefit with your purchase</li>
+            <li>Each customer can purchase only once</li>
+            <li>Giveaway target is ₹{targetAmount.toLocaleString()}</li>
             <li>Once target is reached, winner will be randomly selected</li>
             <li>Winner will be contacted via email</li>
-            <li>Product will be delivered within 7-10 business days</li>
+            <li>iPhone will be delivered within 7-10 business days</li>
+            <li>Ebook will be delivered immediately after payment</li>
+            <li>All sales are final - no refunds</li>
           </ul>
         </div>
       </main>
 
       <footer className="footer">
-        <p>&copy; 2024 iPhone Giveaway. All rights reserved.</p>
+        <p>&copy; 2024 Digital Success Guide. All rights reserved.</p>
         <div className="privacy-links">
           <button
             onClick={() => window.open('/#/transparency', '_blank')}
@@ -378,7 +410,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<GiveawayPage />} />
+        <Route path="/" element={<EbookSalesPage />} />
         <Route path="/transparency" element={<TransparencyReport />} />
       </Routes>
     </Router>

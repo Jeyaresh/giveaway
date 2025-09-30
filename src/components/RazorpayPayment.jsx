@@ -120,7 +120,7 @@ const RazorpayPayment = ({
         currency: orderData.currency,
         order_id: orderData.id, // Use the order ID from backend
         name: RAZORPAY_CONFIG.merchantName,
-        description: `Giveaway Entry - ${participantData.name}`,
+        description: `Ebook Purchase - ${participantData.name}`,
         image: '/vite.svg', // Add your logo URL
         handler: async function (response) {
           console.log('Payment successful:', response);
@@ -132,7 +132,7 @@ const RazorpayPayment = ({
         },
         notes: {
           participant_id: participantData.id,
-          giveaway_entry: 'iPhone Giveaway'
+          product_purchase: 'Digital Success Guide Ebook'
         },
         theme: {
           color: '#667eea'
@@ -177,7 +177,7 @@ const RazorpayPayment = ({
         currency: orderData.currency,
         order_id: orderData.id, // Use the order ID from backend
         name: RAZORPAY_CONFIG.merchantName,
-        description: `Giveaway Entry - ${participantData.name}`,
+        description: `Ebook Purchase - ${participantData.name}`,
         handler: async function (response) {
           console.log('Google Pay payment successful:', response);
           await verifyPayment(response, orderData.id);
@@ -233,7 +233,7 @@ const RazorpayPayment = ({
         currency: orderData.currency,
         order_id: orderData.id, // Use the order ID from backend
         name: RAZORPAY_CONFIG.merchantName,
-        description: `Giveaway Entry - ${participantData.name}`,
+        description: `Ebook Purchase - ${participantData.name}`,
         handler: async function (response) {
           console.log('PhonePe payment successful:', response);
           await verifyPayment(response, orderData.id);
@@ -289,7 +289,7 @@ const RazorpayPayment = ({
         currency: orderData.currency,
         order_id: orderData.id, // Use the order ID from backend
         name: RAZORPAY_CONFIG.merchantName,
-        description: `Giveaway Entry - ${participantData.name}`,
+        description: `Ebook Purchase - ${participantData.name}`,
         handler: async function (response) {
           console.log('Paytm payment successful:', response);
           await verifyPayment(response, orderData.id);

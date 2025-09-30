@@ -4,7 +4,7 @@ const path = require('path');
 // Create .env file
 const envContent = `# Razorpay Configuration
 RAZORPAY_KEY_ID=rzp_live_RLr3XtQd5owAlC
-RAZORPAY_SECRET_KEY=your_secret_key_here
+RAZORPAY_SECRET_KEY=zO7LDifUUQlsWPbOY2gtF4kI
 
 # Server Configuration
 PORT=3001

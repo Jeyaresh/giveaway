@@ -34,7 +34,7 @@ const createOrder = async (orderData) => {
       currency: orderData.currency || 'INR',
       receipt: orderData.receipt,
       notes: orderData.notes || {
-        source: 'iPhone Giveaway',
+        source: 'Digital Success Guide Ebook',
         timestamp: new Date().toISOString()
       }
     };
@@ -84,7 +84,7 @@ export default async function handler(req, res) {
     }
 
     // Create receipt ID
-    const receipt = `giveaway_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const receipt = `ebook_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Create Razorpay order
     const order = await createOrder({
