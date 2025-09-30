@@ -40,6 +40,10 @@ const createOrder = async (amount, participantData) => {
     console.log('Backend response data:', data);
 
     if (!data.success) {
+      // Handle specific error cases
+      if (response.status === 400 && data.error === 'Email already registered') {
+        throw new Error('This email has already participated in the giveaway. Please use a different email address.');
+      }
       throw new Error(data.message || 'Failed to create order');
     }
 
@@ -163,7 +167,7 @@ export const openRazorpayCheckout = async (amount, participantData, onSuccess, o
 
   } catch (error) {
     console.error('Payment error:', error);
-    onError('Payment failed. Please try again.');
+    onError(error.message || 'Payment failed. Please try again.');
   }
 };
 

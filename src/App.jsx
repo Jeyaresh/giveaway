@@ -124,7 +124,7 @@ function EbookSalesPage() {
 
   const handlePaymentError = (error) => {
     console.error('Payment failed:', error)
-    setPaymentError('Payment failed. Please try again.')
+    setPaymentError(error || 'Payment failed. Please try again.')
     setIsPaymentProcessing(false)
     setShowPaymentModal(false)
   }
@@ -132,7 +132,7 @@ function EbookSalesPage() {
   const handlePaymentClose = () => {
     setIsPaymentProcessing(false)
     setShowPaymentModal(false)
-    setPaymentError('Payment cancelled by user')
+    setPaymentError('')
   }
 
   const resetPayment = () => {
