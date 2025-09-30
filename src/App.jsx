@@ -41,13 +41,22 @@ function EbookSalesPage() {
         const statsData = await statsResponse.json();
         const participantsData = await participantsResponse.json();
 
-        if (statsData.success) {
+        if (statsData.success && statsData.stats && typeof statsData.stats.totalCollected === 'number') {
           setTotalCollected(statsData.stats.totalCollected);
+        } else {
+          console.warn('Stats API response invalid:', statsData);
         }
 
-        if (participantsData.success) {
+        if (participantsData.success && Array.isArray(participantsData.participants)) {
           setParticipants(participantsData.participants);
+        } else {
+          console.warn('Participants API response invalid:', participantsData);
         }
+      } else {
+        console.warn('API requests failed:', {
+          statsStatus: statsResponse.status,
+          participantsStatus: participantsResponse.status
+        });
       }
     } catch (error) {
       console.error('Error fetching Firebase data:', error);
