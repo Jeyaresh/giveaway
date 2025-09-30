@@ -1,6 +1,6 @@
-const Razorpay = require('razorpay');
-const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, addDoc, query, where, getDocs } = require('firebase/firestore');
+import Razorpay from 'razorpay';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 
 // Check if environment variables are set
 if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_SECRET_KEY) {

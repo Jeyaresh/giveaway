@@ -7,6 +7,13 @@ export default defineConfig({
   server: {
     host: true,        // listen on all network interfaces
     port: 5173,        // your dev server port
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false
+      }
+    },
     allowedHosts: [
       'revisory-toby-triennially.ngrok-free.dev' // add your ngrok host here
     ]

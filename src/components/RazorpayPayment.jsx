@@ -135,7 +135,21 @@ const RazorpayPayment = ({
           product_purchase: 'Digital Success Guide Ebook'
         },
         theme: {
-          color: '#667eea'
+          color: '#1e3a8a'
+        },
+        // Enable all payment methods including GPay and PhonePe
+        method: {
+          netbanking: true,
+          wallet: true,
+          upi: true,
+          card: true,
+          emi: false
+        },
+        // Additional configuration for better payment method display
+        config: {
+          display: {
+            hide: []
+          }
         },
         modal: {
           ondismiss: function() {
@@ -147,11 +161,22 @@ const RazorpayPayment = ({
 
       console.log('Opening Razorpay with options:', options);
       const razorpay = new window.Razorpay(options);
+      
+      // Add event listeners for debugging
       razorpay.on('payment.failed', function (response) {
         console.error('Payment failed:', response.error);
         onError('Payment failed: ' + response.error.description);
         setIsProcessing(false);
       });
+      
+      razorpay.on('payment.authorized', function (response) {
+        console.log('Payment authorized:', response);
+      });
+      
+      razorpay.on('payment.captured', function (response) {
+        console.log('Payment captured:', response);
+      });
+      
       razorpay.open();
 
     } catch (error) {
@@ -187,13 +212,14 @@ const RazorpayPayment = ({
           email: participantData.email,
         },
         theme: {
-          color: '#4285f4' // Google Pay blue
+          color: '#1e3a8a' // Professional blue
         },
         method: {
-          netbanking: false,
-          wallet: false,
+          netbanking: true,
+          wallet: true,
           upi: true,
-          card: true
+          card: true,
+          emi: false
         },
         modal: {
           ondismiss: function() {
@@ -243,13 +269,14 @@ const RazorpayPayment = ({
           email: participantData.email,
         },
         theme: {
-          color: '#5f259f' // PhonePe purple
+          color: '#1e3a8a' // Professional blue
         },
         method: {
-          netbanking: false,
-          wallet: false,
+          netbanking: true,
+          wallet: true,
           upi: true,
-          card: true
+          card: true,
+          emi: false
         },
         modal: {
           ondismiss: function() {
@@ -299,13 +326,14 @@ const RazorpayPayment = ({
           email: participantData.email,
         },
         theme: {
-          color: '#00baf2' // Paytm blue
+          color: '#1e3a8a' // Professional blue
         },
         method: {
-          netbanking: false,
-          wallet: false,
+          netbanking: true,
+          wallet: true,
           upi: true,
-          card: true
+          card: true,
+          emi: false
         },
         modal: {
           ondismiss: function() {

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { HashRouter as Router, Routes, Route } from 'react-router-dom'
 import { BookOpen, Users, Target, CheckCircle, Gift, CreditCard, Loader, Download } from 'lucide-react'
-import RazorpayPayment from './components/RazorpayPayment'
 import ParticipantsList from './components/ParticipantsList'
 import TransparencyReport from './pages/TransparencyReport'
+import { openRazorpayCheckout } from './utils/razorpayCheckout'
 import './App.css'
 
 // Main Ebook Sales Page Component
@@ -16,7 +16,6 @@ function EbookSalesPage() {
   const [showParticipants, setShowParticipants] = useState(false)
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false)
   const [paymentError, setPaymentError] = useState('')
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [currentParticipantData, setCurrentParticipantData] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showDownloadModal, setShowDownloadModal] = useState(false)
@@ -90,11 +89,19 @@ function EbookSalesPage() {
       amount: ebookPrice
     }
 
-    // Real payment mode with Razorpay
+    // Direct Razorpay payment - open checkout immediately
     setCurrentParticipantData(customerData)
     setIsPaymentProcessing(true)
     setPaymentError('')
-    setShowPaymentModal(true)
+    
+    // Open Razorpay checkout directly with all payment methods
+    openRazorpayCheckout(
+      ebookPrice,
+      customerData,
+      handlePaymentSuccess,
+      handlePaymentError,
+      handlePaymentClose
+    )
   }
 
   const handlePaymentSuccess = async (response, customerData) => {
@@ -327,16 +334,6 @@ function EbookSalesPage() {
           </div>
         )}
 
-        {/* Razorpay Payment Modal */}
-        {showPaymentModal && currentParticipantData && (
-          <RazorpayPayment
-            amount={ebookPrice}
-            participantData={currentParticipantData}
-            onSuccess={handlePaymentSuccess}
-            onError={handlePaymentError}
-            onClose={handlePaymentClose}
-          />
-        )}
 
         {/* Download Modal */}
         {showDownloadModal && (

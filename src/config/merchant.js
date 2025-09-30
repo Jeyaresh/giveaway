@@ -9,13 +9,13 @@ export const RAZORPAY_CONFIG = {
   // NEVER expose secret keys in frontend code
   
   // Your business/merchant name
-  merchantName: 'iPhone Giveaway',
+  merchantName: 'Digital Success Guide',
   
   // Your business details
   businessInfo: {
-    name: 'iPhone Giveaway',
-    category: 'Giveaway',
-    description: 'Win an iPhone for just ₹10'
+    name: 'Digital Success Guide',
+    category: 'Ebook Sales',
+    description: 'Purchase Digital Success Guide Ebook for ₹10'
   },
   
   // Payment settings
