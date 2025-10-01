@@ -9,8 +9,8 @@ if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_SECRET_KEY) {
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_RLr3XtQd5owAlC',
-  key_secret: process.env.RAZORPAY_SECRET_KEY || 'zO7LDifUUQlsWPbOY2gtF4kI',
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_live_RODENRMaafpgCe',
+  key_secret: process.env.RAZORPAY_SECRET_KEY || 'WklTYhalAryuQqInT9IScIfJ',
 });
 
 // Initialize Firebase

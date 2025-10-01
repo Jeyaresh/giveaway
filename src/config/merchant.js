@@ -3,7 +3,7 @@
 
 export const RAZORPAY_CONFIG = {
   // Your Razorpay live key ID (replace with your actual live key)
-  keyId: 'rzp_live_RLr3XtQd5owAlC',
+  keyId: 'rzp_live_RODENRMaafpgCe',
   
   // Secret key is stored securely on backend server
   // NEVER expose secret keys in frontend code
