@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Download, RefreshCw, Users, DollarSign, Calendar, Shield, Eye, ArrowLeft, BookOpen, Home, BarChart3, Menu, X } from 'lucide-react';
 import BackToTop from '../components/BackToTop';
+import { getAllParticipants, getPaymentStats } from '../services/firebaseService';
 import './TransparencyReport.css';
 
 const TransparencyReport = () => {
@@ -26,27 +27,20 @@ const TransparencyReport = () => {
       setLoading(true);
       setError(null);
       
-      const [participantsResponse, statsResponse] = await Promise.all([
-        fetch('/api/participants'),
-        fetch('/api/stats')
+      // Fetch from Firebase directly
+      const [participants, stats] = await Promise.all([
+        getAllParticipants(),
+        getPaymentStats()
       ]);
 
-      if (!participantsResponse.ok || !statsResponse.ok) {
-        throw new Error('Failed to fetch data');
-      }
-
-      const participantsData = await participantsResponse.json();
-      const statsData = await statsResponse.json();
-
-      if (participantsData.success) {
-        setParticipants(participantsData.participants);
-      }
-
-      if (statsData.success) {
-        setStats(statsData.stats);
-      }
-
+      setParticipants(participants);
+      setStats(stats);
       setLastUpdated(new Date());
+      
+      console.log('Firebase data loaded in TransparencyReport:', {
+        participants: participants.length,
+        totalCollected: stats.totalCollected
+      });
     } catch (err) {
       console.error('Error fetching data:', err);
       setError(err.message);

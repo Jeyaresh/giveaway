@@ -32,41 +32,27 @@ function EbookSalesPage() {
     try {
       if (showLoading) setIsRefreshing(true);
       
-      const [statsResponse, participantsResponse] = await Promise.all([
-        fetch('/api/stats'),
-        fetch('/api/participants')
+      // Import Firebase service functions
+      const { getAllParticipants, getPaymentStats } = await import('./services/firebaseService');
+      
+      const [participants, stats] = await Promise.all([
+        getAllParticipants(),
+        getPaymentStats()
       ]);
 
-      if (statsResponse.ok && participantsResponse.ok) {
-        const statsData = await statsResponse.json();
-        const participantsData = await participantsResponse.json();
-
-        if (statsData.success && statsData.stats && typeof statsData.stats.totalCollected === 'number') {
-          setTotalCollected(statsData.stats.totalCollected);
-        } else {
-          console.warn('Stats API response invalid:', statsData);
-        }
-
-        if (participantsData.success && Array.isArray(participantsData.participants)) {
-          setParticipants(participantsData.participants);
-        } else {
-          console.warn('Participants API response invalid:', participantsData);
-        }
-      } else {
-        console.warn('API requests failed:', {
-          statsStatus: statsResponse.status,
-          participantsStatus: participantsResponse.status
-        });
-      }
+      // Filter only completed participants
+      const completedParticipants = participants.filter(p => p.paymentStatus === 'completed');
+      
+      setParticipants(completedParticipants);
+      setTotalCollected(stats.totalCollected);
+      
+      console.log('Firebase data loaded:', {
+        participants: completedParticipants.length,
+        totalCollected: stats.totalCollected
+      });
     } catch (error) {
       console.error('Error fetching Firebase data:', error);
-      // Fallback to localStorage if Firebase fails
-      const savedParticipants = localStorage.getItem('ebookCustomers');
-      if (savedParticipants) {
-        const parsed = JSON.parse(savedParticipants);
-        setParticipants(parsed);
-        setTotalCollected(parsed.length * ebookPrice);
-      }
+      // No fallback needed - Firebase is the single source of truth
     } finally {
       if (showLoading) setIsRefreshing(false);
     }
@@ -124,7 +110,6 @@ function EbookSalesPage() {
     
     setIsPaid(true)
     setIsPaymentProcessing(false)
-    setShowPaymentModal(false)
     setPaymentError('')
     setShowDownloadModal(true)
 
@@ -138,12 +123,10 @@ function EbookSalesPage() {
     console.error('Payment failed:', error)
     setPaymentError(error || 'Payment failed. Please try again.')
     setIsPaymentProcessing(false)
-    setShowPaymentModal(false)
   }
 
   const handlePaymentClose = () => {
     setIsPaymentProcessing(false)
-    setShowPaymentModal(false)
     setPaymentError('')
   }
 

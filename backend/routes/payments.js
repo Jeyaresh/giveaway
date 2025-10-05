@@ -2,7 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
 const { createOrder, verifyPayment, fetchPayment } = require('../config/razorpay');
-const { db } = require('../database/init');
+const { addParticipant, addTransaction, checkEmailExists, checkPaymentIdExists } = require('../config/firebase');
 const router = express.Router();
 
 // Validation middleware
@@ -29,19 +29,9 @@ router.post('/create-order', validatePaymentRequest, async (req, res) => {
 
     const { amount, participantName, participantEmail, participantPhone } = req.body;
 
-    // Check if email already exists
-    const existingParticipant = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT id FROM participants WHERE email = ?',
-        [participantEmail],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
-
-    if (existingParticipant) {
+    // Check if email already exists in Firebase
+    const emailExists = await checkEmailExists(participantEmail);
+    if (emailExists) {
       return res.status(400).json({
         success: false,
         error: 'Email already registered',
@@ -173,19 +163,9 @@ router.post('/verify-payment', [
       });
     }
 
-    // Check if payment is already processed
-    const existingPayment = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT id FROM participants WHERE razorpay_payment_id = ?',
-        [razorpay_payment_id],
-        (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        }
-      );
-    });
-
-    if (existingPayment) {
+    // Check if payment is already processed in Firebase
+    const paymentExists = await checkPaymentIdExists(razorpay_payment_id);
+    if (paymentExists) {
       return res.status(400).json({
         success: false,
         error: 'Payment already processed',
@@ -193,108 +173,72 @@ router.post('/verify-payment', [
       });
     }
 
-    // Start database transaction
-    db.serialize(() => {
-      db.run('BEGIN TRANSACTION');
+    // Save to Firebase instead of SQLite
+    try {
+      // Prepare participant data for Firebase
+      const participantData = {
+        name: participantName,
+        email: participantEmail,
+        phone: participantPhone || null,
+        amount: paymentDetails.amount / 100, // Convert from paise to rupees
+        razorpayPaymentId: razorpay_payment_id,
+        razorpayOrderId: razorpay_order_id,
+        razorpaySignature: razorpay_signature,
+        paymentStatus: 'completed',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
-      // Insert participant with data security measures
-      const participantStmt = db.prepare(`
-        INSERT INTO participants (
-          name, email, phone, amount, razorpay_payment_id, 
-          razorpay_order_id, razorpay_signature, payment_status,
-          created_at, data_hash, is_encrypted
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `);
+      // Save participant to Firebase
+      const participantResult = await addParticipant(participantData);
+      console.log(`Payment verified and saved to Firebase for participant ${participantResult.id}`);
 
-      // Generate data hash for integrity verification
-      const dataToHash = `${participantName}${participantEmail}${participantPhone || ''}${paymentDetails.amount}${razorpay_payment_id}${razorpay_order_id}`;
-      const dataHash = crypto.createHash('sha256').update(dataToHash).digest('hex');
-      
-      participantStmt.run([
-        participantName,
-        participantEmail,
-        participantPhone || null,
-        paymentDetails.amount / 100, // Convert from paise to rupees
-        razorpay_payment_id,
-        razorpay_order_id,
-        razorpay_signature,
-        'completed',
-        new Date().toISOString(), // created_at
-        dataHash, // data_hash for integrity
-        1 // is_encrypted flag
-      ], function(err) {
-        if (err) {
-          console.error('Error inserting participant:', err);
-          db.run('ROLLBACK');
-          return res.status(500).json({
-            success: false,
-            error: 'Database error',
-            message: 'Failed to save participant data'
-          });
+      // Prepare transaction data for Firebase (filter out undefined values)
+      const transactionData = {
+        participantId: participantResult.id,
+        razorpayPaymentId: razorpay_payment_id,
+        razorpayOrderId: razorpay_order_id,
+        amount: paymentDetails.amount / 100,
+        currency: paymentDetails.currency,
+        status: paymentDetails.status,
+        paymentMethod: paymentDetails.method || null,
+        bankReference: paymentDetails.bank_reference || null,
+        wallet: paymentDetails.wallet || null,
+        vpa: paymentDetails.vpa || null,
+        email: paymentDetails.email || null,
+        contact: paymentDetails.contact || null,
+        notes: paymentDetails.notes || {}
+      };
+
+      // Remove any undefined values to prevent Firebase errors
+      Object.keys(transactionData).forEach(key => {
+        if (transactionData[key] === undefined) {
+          delete transactionData[key];
         }
-
-        const participantId = this.lastID;
-
-        // Insert transaction details
-        const transactionStmt = db.prepare(`
-          INSERT INTO transactions (
-            participant_id, razorpay_payment_id, razorpay_order_id,
-            amount, currency, status, payment_method, bank_reference,
-            wallet, vpa, email, contact, notes
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-
-        transactionStmt.run([
-          participantId,
-          razorpay_payment_id,
-          razorpay_order_id,
-          paymentDetails.amount / 100,
-          paymentDetails.currency,
-          paymentDetails.status,
-          paymentDetails.method,
-          paymentDetails.bank_reference,
-          paymentDetails.wallet,
-          paymentDetails.vpa,
-          paymentDetails.email,
-          paymentDetails.contact,
-          JSON.stringify(paymentDetails.notes || {})
-        ], function(err) {
-          if (err) {
-            console.error('Error inserting transaction:', err);
-            db.run('ROLLBACK');
-            return res.status(500).json({
-              success: false,
-              error: 'Database error',
-              message: 'Failed to save transaction data'
-            });
-          }
-
-          db.run('COMMIT', (commitErr) => {
-            if (commitErr) {
-              console.error('Error committing transaction:', commitErr);
-              return res.status(500).json({
-                success: false,
-                error: 'Database error',
-                message: 'Failed to commit transaction'
-              });
-            }
-
-            console.log(`Payment verified and saved for participant ${participantId}`);
-
-            res.json({
-              success: true,
-              message: 'Payment verified successfully',
-              participant: {
-                id: participantId,
-                name: participantName,
-                email: participantEmail,
-                paymentId: razorpay_payment_id
-              }
-            });
-          });
-        });
       });
-    });
+
+      // Save transaction to Firebase
+      await addTransaction(transactionData);
+
+      res.json({
+        success: true,
+        message: 'Payment verified successfully',
+        participant: {
+          id: participantResult.id,
+          name: participantName,
+          email: participantEmail,
+          paymentId: razorpay_payment_id
+        }
+      });
+
+    } catch (firebaseError) {
+      console.error('Error saving to Firebase:', firebaseError);
+      return res.status(500).json({
+        success: false,
+        error: 'Firebase error',
+        message: 'Failed to save payment data to Firebase'
+      });
+    }
 
   } catch (error) {
     console.error('Error verifying payment:', error);
@@ -306,112 +250,8 @@ router.post('/verify-payment', [
   }
 });
 
-// Get payment statistics
-router.get('/stats', async (req, res) => {
-  try {
-    const stats = await new Promise((resolve, reject) => {
-      db.get(`
-        SELECT 
-          COUNT(*) as totalParticipants,
-          SUM(amount) as totalCollected,
-          AVG(amount) as averageAmount
-        FROM participants 
-        WHERE payment_status = 'completed'
-      `, (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+// Note: Stats endpoint removed - frontend uses Firebase directly
 
-    res.json({
-      success: true,
-      stats: {
-        totalParticipants: stats.totalParticipants || 0,
-        totalCollected: stats.totalCollected || 0,
-        averageAmount: stats.averageAmount || 0
-      }
-    });
-
-  } catch (error) {
-    console.error('Error fetching stats:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch statistics'
-    });
-  }
-});
-
-// Data transparency endpoint - shows all participants (for transparency)
-router.get('/transparency', async (req, res) => {
-  try {
-    const participants = await new Promise((resolve, reject) => {
-      db.all(`
-        SELECT 
-          id,
-          name,
-          email,
-          amount,
-          payment_status,
-          created_at,
-          data_hash,
-          is_encrypted,
-          data_integrity_verified
-        FROM participants 
-        WHERE payment_status = 'completed'
-        ORDER BY created_at DESC
-      `, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
-
-    const totalStats = await new Promise((resolve, reject) => {
-      db.get(`
-        SELECT 
-          COUNT(*) as totalParticipants,
-          SUM(amount) as totalCollected,
-          MIN(created_at) as firstPayment,
-          MAX(created_at) as lastPayment
-        FROM participants 
-        WHERE payment_status = 'completed'
-      `, (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
-
-    res.json({
-      success: true,
-      transparency: {
-        totalParticipants: totalStats.totalParticipants || 0,
-        totalCollected: totalStats.totalCollected || 0,
-        firstPayment: totalStats.firstPayment,
-        lastPayment: totalStats.lastPayment,
-        participants: participants.map(p => ({
-          id: p.id,
-          name: p.name,
-          email: p.email,
-          amount: p.amount,
-          paymentStatus: p.payment_status,
-          createdAt: p.created_at,
-          dataIntegrity: p.data_integrity_verified ? 'Verified' : 'Pending',
-          isEncrypted: p.is_encrypted ? 'Yes' : 'No'
-        })),
-        dataSecurity: {
-          allDataEncrypted: participants.every(p => p.is_encrypted),
-          integrityVerified: participants.every(p => p.data_integrity_verified),
-          totalRecords: participants.length
-        }
-      }
-    });
-
-  } catch (error) {
-    console.error('Error fetching transparency data:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch transparency data'
-    });
-  }
-});
+// Note: Transparency endpoint removed - frontend uses Firebase directly
 
 module.exports = router;

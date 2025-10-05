@@ -6,7 +6,7 @@ I've built a **secure, production-ready** backend for your Razorpay integration 
 
 ### 🔧 Backend Features
 - **Secure Payment Processing**: Server-side order creation and verification
-- **Database Storage**: SQLite database for participants and transactions
+- **Database Storage**: Firebase Firestore for participants and transactions
 - **Security Middleware**: Rate limiting, CORS, input validation, Helmet
 - **Payment Verification**: Cryptographic signature verification
 - **Duplicate Prevention**: Prevents duplicate payments
@@ -58,7 +58,7 @@ Frontend will run on: `http://localhost:5174`
 1. Set `NODE_ENV=production` in `.env`
 2. Use a strong `JWT_SECRET`
 3. Enable HTTPS
-4. Set up database backups
+4. Firebase handles data backup automatically
 5. Configure monitoring
 
 ## 📊 How It Works Now
@@ -68,7 +68,7 @@ Frontend will run on: `http://localhost:5174`
 2. **Backend** → Creates secure Razorpay order
 3. **Razorpay** → Processes payment
 4. **Backend** → Verifies payment signature
-5. **Database** → Stores transaction securely
+5. **Firebase** → Stores transactions securely in the cloud
 
 ### API Endpoints
 - `POST /api/payments/create-order` - Create payment order
@@ -80,15 +80,14 @@ Frontend will run on: `http://localhost:5174`
 
 1. **Health Check**: Visit `http://localhost:3001/health`
 2. **Payment Test**: Use the frontend to test payments
-3. **Database**: Check `backend/database/giveaway.db` for stored data
+3. **Firebase**: Check Firebase Console for stored data
 
 ## 📁 Project Structure
 
 ```
 giveaway/
 ├── backend/                 # Secure Node.js backend
-│   ├── config/             # Razorpay configuration
-│   ├── database/           # SQLite database setup
+│   ├── config/             # Firebase and Razorpay configuration
 │   ├── routes/             # API routes
 │   ├── server.js           # Main server file
 │   └── .env               # Environment variables
@@ -110,10 +109,10 @@ giveaway/
 - Check network connectivity
 - Verify payment amount is valid
 
-### Database Issues
-- Check if `database/` directory exists
-- Verify file permissions
-- Check SQLite installation
+### Firebase Issues
+- Check Firebase configuration in `backend/config/firebase.js`
+- Verify Firebase project settings
+- Check Firebase service account permissions
 
 ## 🎯 Next Steps
 
@@ -128,6 +127,6 @@ If you encounter any issues:
 1. Check the console logs
 2. Verify all environment variables
 3. Test the health endpoint
-4. Check the database for stored data
+4. Check Firebase Console for stored data
 
 Your Razorpay integration is now **secure and production-ready**! 🚀

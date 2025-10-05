@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const { initDatabase } = require('./database/init');
 require('dotenv').config();
 
 const app = express();
@@ -10,7 +9,6 @@ const PORT = process.env.PORT || 3001;
 
 // Import routes
 const paymentRoutes = require('./routes/payments');
-const participantRoutes = require('./routes/participants');
 
 // Security middleware
 app.use(helmet());
@@ -28,6 +26,7 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:5174',
+    'https://giveaway-delta-one.vercel.app',
     process.env.FRONTEND_URL || 'http://localhost:5174'
   ],
   credentials: true
@@ -48,7 +47,6 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/payments', paymentRoutes);
-app.use('/api/participants', participantRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -64,17 +62,12 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Initialize database and start server
-initDatabase().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-    console.log(`💾 Database initialized successfully`);
-  });
-}).catch((error) => {
-  console.error('❌ Failed to initialize database:', error);
-  process.exit(1);
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔥 Using Firebase for data storage`);
 });
 
 module.exports = app;

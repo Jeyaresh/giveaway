@@ -22,7 +22,7 @@ const loadRazorpay = () => {
 const createOrder = async (amount, participantData) => {
   try {
     console.log('Creating order via backend for amount:', amount);
-    const response = await fetch(`${API_BASE_URL}/create-order`, {
+    const response = await fetch(`${API_BASE_URL}/payments/create-order`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ const createOrder = async (amount, participantData) => {
 // Verify payment
 const verifyPayment = async (response, orderId, participantData) => {
   try {
-    const verifyResponse = await fetch(`${API_BASE_URL}/verify-payment`, {
+    const verifyResponse = await fetch(`${API_BASE_URL}/payments/verify-payment`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

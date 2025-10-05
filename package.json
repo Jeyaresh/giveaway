@@ -5,13 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:api": "node local-api-server.js",
-    "dev:full": "node dev-start.js",
+    "dev:full": "./start.sh",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node dev-server.js",
-    "test:local": "node test-local-setup.js"
+    "start": "node dev-server.js"
   },
   "dependencies": {
     "crypto": "^1.0.1",
@@ -22,8 +20,7 @@
     "razorpay": "^2.9.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-router-dom": "^6.8.1",
-    "sqlite3": "^5.1.6"
+    "react-router-dom": "^6.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

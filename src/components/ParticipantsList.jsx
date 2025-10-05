@@ -20,26 +20,22 @@ const ParticipantsList = () => {
       setLoading(true);
       setError(null);
       
-      // Fetch from API instead of direct Firebase service
-      const [participantsResponse, statsResponse] = await Promise.all([
-        fetch('/api/participants'),
-        fetch('/api/stats')
+      // Fetch from Firebase directly
+      const [participants, stats] = await Promise.all([
+        getAllParticipants(),
+        getPaymentStats()
       ]);
 
-      if (!participantsResponse.ok || !statsResponse.ok) {
-        throw new Error('Failed to fetch data');
-      }
-
-      const participantsData = await participantsResponse.json();
-      const statsData = await statsResponse.json();
-
-      if (participantsData.success) {
-        setParticipants(participantsData.participants);
-      }
-
-      if (statsData.success) {
-        setStats(statsData.stats);
-      }
+      // Filter only completed participants
+      const completedParticipants = participants.filter(p => p.paymentStatus === 'completed');
+      
+      setParticipants(completedParticipants);
+      setStats(stats);
+      
+      console.log('Firebase data loaded in ParticipantsList:', {
+        participants: completedParticipants.length,
+        totalCollected: stats.totalCollected
+      });
     } catch (err) {
       console.error('Error fetching data:', err);
       setError(err.message);

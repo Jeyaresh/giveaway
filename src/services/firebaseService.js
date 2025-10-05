@@ -64,17 +64,19 @@ export const getAllParticipants = async () => {
 // Get participants by payment status
 export const getParticipantsByStatus = async (status = 'completed') => {
   try {
+    // First get all participants, then filter client-side to avoid index requirement
     const q = query(
       collection(db, PARTICIPANTS_COLLECTION),
-      where('paymentStatus', '==', status),
       orderBy('createdAt', 'desc')
     );
     const querySnapshot = await getDocs(q);
-    const participants = [];
+    const allParticipants = [];
     querySnapshot.forEach((doc) => {
-      participants.push({ id: doc.id, ...doc.data() });
+      allParticipants.push({ id: doc.id, ...doc.data() });
     });
-    return participants;
+    
+    // Filter by status client-side
+    return allParticipants.filter(participant => participant.paymentStatus === status);
   } catch (error) {
     console.error('Error getting participants by status:', error);
     throw error;
@@ -114,9 +116,12 @@ export const checkPaymentIdExists = async (paymentId) => {
 // Get payment statistics
 export const getPaymentStats = async () => {
   try {
-    const participants = await getParticipantsByStatus('completed');
-    const totalParticipants = participants.length;
-    const totalCollected = participants.reduce((sum, participant) => sum + (participant.amount || 0), 0);
+    // Get all participants first, then filter client-side
+    const allParticipants = await getAllParticipants();
+    const completedParticipants = allParticipants.filter(p => p.paymentStatus === 'completed');
+    
+    const totalParticipants = completedParticipants.length;
+    const totalCollected = completedParticipants.reduce((sum, participant) => sum + (participant.amount || 0), 0);
     const averageAmount = totalParticipants > 0 ? totalCollected / totalParticipants : 0;
     
     return {
