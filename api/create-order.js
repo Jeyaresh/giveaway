@@ -1,6 +1,6 @@
-const Razorpay = require('razorpay');
-const { initializeApp } = require('firebase/app');
-const { getFirestore, collection, addDoc, getDocs, query, where } = require('firebase/firestore');
+import Razorpay from 'razorpay';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 
 // Firebase configuration
 const firebaseConfig = {
