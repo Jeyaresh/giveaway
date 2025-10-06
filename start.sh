@@ -3,9 +3,12 @@
 echo "🚀 Starting iPhone Giveaway App..."
 echo ""
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Start backend server
 echo "📡 Starting backend server..."
-cd backend && node server.js &
+cd "$SCRIPT_DIR/backend" && node server.js &
 BACKEND_PID=$!
 
 # Wait a moment for backend to start
@@ -13,7 +16,7 @@ sleep 3
 
 # Start frontend server
 echo "🎨 Starting frontend server..."
-cd .. && npm run dev &
+cd "$SCRIPT_DIR" && npm run dev &
 FRONTEND_PID=$!
 
 echo ""
