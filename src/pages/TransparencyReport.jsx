@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, RefreshCw, Users, DollarSign, Calendar, Shield, Eye, ArrowLeft, BookOpen, Home, BarChart3, Menu, X } from 'lucide-react';
+import { Download, RefreshCw, Users, DollarSign, Calendar, Shield, Eye, ArrowLeft } from 'lucide-react';
 import BackToTop from '../components/BackToTop';
+import Header from '../components/Header';
 import { getAllParticipants, getPaymentStats } from '../services/firebaseService';
 import './TransparencyReport.css';
 
@@ -16,7 +17,6 @@ const TransparencyReport = () => {
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all'); // all, completed, pending
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -133,93 +133,7 @@ const TransparencyReport = () => {
   return (
     <div className="transparency-page">
       {/* Navigation Header */}
-      <header className="header-nav">
-        <div className="header-container">
-          <div className="header-brand">
-            <BookOpen className="brand-icon" />
-            <span className="brand-text">Digital Success Guide</span>
-          </div>
-          
-          {/* Desktop Navigation */}
-          <nav className="header-nav-desktop">
-            <Link to="/" className="nav-link">
-              <Home size={18} />
-              <span>Home</span>
-            </Link>
-            <Link to="/transparency" className="nav-link active">
-              <BarChart3 size={18} />
-              <span>Transparency Report</span>
-            </Link>
-            <Link to="/privacy" className="nav-link">
-              <Shield size={18} />
-              <span>Privacy Policy</span>
-            </Link>
-          </nav>
-          
-          {/* Mobile Menu Button */}
-          <button 
-            className="mobile-menu-btn"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="Toggle mobile menu"
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-        
-        {/* Mobile Sidebar */}
-        <div className={`mobile-sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
-          <div className="mobile-sidebar-content">
-            <div className="mobile-sidebar-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <BookOpen className="sidebar-brand-icon" />
-                <span className="sidebar-brand-text">Digital Success Guide</span>
-              </div>
-              <button 
-                className="mobile-sidebar-close"
-                onClick={() => setIsMobileMenuOpen(false)}
-                aria-label="Close mobile menu"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            
-            <nav className="mobile-nav">
-              <Link 
-                to="/" 
-                className="mobile-nav-link"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <Home size={20} />
-                <span>Home</span>
-              </Link>
-              <Link 
-                to="/transparency" 
-                className="mobile-nav-link active"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <BarChart3 size={20} />
-                <span>Transparency Report</span>
-              </Link>
-              <Link 
-                to="/privacy" 
-                className="mobile-nav-link"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <Shield size={20} />
-                <span>Privacy Policy</span>
-              </Link>
-            </nav>
-          </div>
-        </div>
-        
-        {/* Mobile Overlay */}
-        {isMobileMenuOpen && (
-          <div 
-            className="mobile-overlay"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-        )}
-      </header>
+      <Header />
 
       <div className="transparency-container">
         {/* Page Header */}

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ShoppingBag, Star, Heart, ShoppingCart, ArrowLeft, Search, Filter } from 'lucide-react'
+import Header from '../components/Header'
+import PaymentPopup from '../components/PaymentPopup'
 import './ProductsPage.css'
 
 // Product data
@@ -77,6 +79,8 @@ function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [sortBy, setSortBy] = useState('name')
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
 
   const categories = ['All', ...new Set(products.map(product => product.category))]
 
@@ -106,13 +110,37 @@ function ProductsPage() {
     )
   }
 
-  const addToCart = (product) => {
-    alert(`Added "${product.name}" to cart! (This is a demo)`)
+  const buyNow = (product) => {
+    setSelectedProduct(product)
+    setShowPaymentPopup(true)
+  }
+
+  const handleClosePopup = () => {
+    setShowPaymentPopup(false)
+    setSelectedProduct(null)
+  }
+
+  const handlePaymentSuccess = (response, customerData) => {
+    console.log('Payment successful:', response)
+    // You can add additional logic here if needed
+  }
+
+  const handlePaymentError = (error) => {
+    console.error('Payment failed:', error)
+    // You can add additional error handling here if needed
+  }
+
+  const handlePaymentClose = () => {
+    console.log('Payment popup closed')
+    // You can add additional logic here if needed
   }
 
   return (
     <div className="products-page">
-      {/* Header */}
+      {/* Navigation Header */}
+      <Header />
+      
+      {/* Page Header */}
       <header className="products-header">
         <div className="products-header-content">
           <div className="breadcrumb">
@@ -205,14 +233,14 @@ function ProductsPage() {
               </div>
               
               <button 
-                className={`add-to-cart-btn ${!product.inStock ? 'out-of-stock' : ''}`}
-                onClick={() => addToCart(product)}
+                className={`buy-now-btn ${!product.inStock ? 'out-of-stock' : ''}`}
+                onClick={() => buyNow(product)}
                 disabled={!product.inStock}
               >
                 {product.inStock ? (
                   <>
                     <ShoppingCart size={18} />
-                    Add to Cart
+                    Buy Now
                   </>
                 ) : (
                   'Out of Stock'
@@ -250,6 +278,16 @@ function ProductsPage() {
           <p>Avg Rating</p>
         </div>
       </div>
+
+      {/* Payment Popup */}
+      <PaymentPopup
+        isOpen={showPaymentPopup}
+        onClose={handleClosePopup}
+        product={selectedProduct}
+        onPaymentSuccess={handlePaymentSuccess}
+        onPaymentError={handlePaymentError}
+        onPaymentClose={handlePaymentClose}
+      />
     </div>
   )
 }

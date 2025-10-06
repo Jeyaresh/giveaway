@@ -169,6 +169,19 @@ body::before {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 
+.nav-link.active {
+  background: var(--primary-gradient);
+  color: white;
+  box-shadow: 0 8px 25px rgba(30, 58, 138, 0.3);
+  transform: translateY(-2px);
+}
+
+.mobile-nav-link.active {
+  background: var(--primary-gradient);
+  color: white;
+  box-shadow: 0 4px 15px rgba(30, 58, 138, 0.3);
+}
+
 .mobile-menu-btn {
   display: none;
   background: rgba(255, 255, 255, 0.1);
