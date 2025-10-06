@@ -1,9 +1,6 @@
 import { RAZORPAY_CONFIG } from '../config/merchant';
 
-// API Base URL - points to your backend
-const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://giveaway-delta-one.vercel.app/api' 
-  : 'http://localhost:3001/api';
+const API_BASE_URL = '/api';
 
 // Load Razorpay script
 const loadRazorpay = () => {
