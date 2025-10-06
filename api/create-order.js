@@ -1,6 +1,6 @@
-import Razorpay from 'razorpay';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+const Razorpay = require('razorpay');
+const { initializeApp } = require('firebase/app');
+const { getFirestore, collection, addDoc, getDocs, query, where } = require('firebase/firestore');
 
 // Firebase configuration
 const firebaseConfig = {
@@ -37,7 +37,7 @@ const checkEmailExists = async (email) => {
   }
 };
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -123,4 +123,4 @@ export default async function handler(req, res) {
       message: 'Please try again later'
     });
   }
-}
+};
