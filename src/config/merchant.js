@@ -9,13 +9,13 @@ export const RAZORPAY_CONFIG = {
   // NEVER expose secret keys in frontend code
   
   // Your business/merchant name
-  merchantName: 'Digital Success Guide',
+  merchantName: 'Granzia',
   
   // Your business details
   businessInfo: {
-    name: 'Digital Success Guide',
+    name: 'Granzia',
     category: 'Ebook Sales',
-    description: 'Purchase Digital Success Guide Ebook for ₹10'
+    description: 'Purchase Granzia Ebook for ₹10'
   },
   
   // Payment settings

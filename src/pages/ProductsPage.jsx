@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ShoppingBag, Star, Heart, ShoppingCart, ArrowLeft, Search, Filter } from 'lucide-react'
+import { ShoppingBag, Star, Heart, ShoppingCart, Search, Filter } from 'lucide-react'
 import Header from '../components/Header'
 import PaymentPopup from '../components/PaymentPopup'
 import './ProductsPage.css'
@@ -9,6 +8,20 @@ import './ProductsPage.css'
 const products = [
   {
     id: 1,
+    name: "Unseen Wings",
+    price: 10,
+    originalPrice: 10,
+    rating: 4.9,
+    reviews: 156,
+    image: "📚",
+    description: "A captivating story about discovering hidden potential and soaring beyond limitations. This inspiring tale will motivate you to spread your wings and achieve your dreams.",
+    category: "Fiction",
+    inStock: true,
+    isNew: true,
+    isComingSoon: false
+  },
+  {
+    id: 2,
     name: "Digital Marketing Mastery",
     price: 299,
     originalPrice: 599,
@@ -17,11 +30,12 @@ const products = [
     image: "📱",
     description: "Complete guide to digital marketing strategies, social media management, and online advertising techniques.",
     category: "Marketing",
-    inStock: true,
-    isNew: true
+    inStock: false,
+    isNew: false,
+    isComingSoon: true
   },
   {
-    id: 2,
+    id: 3,
     name: "E-commerce Success Blueprint",
     price: 399,
     originalPrice: 799,
@@ -30,11 +44,12 @@ const products = [
     image: "🛒",
     description: "Learn how to build and scale successful online stores with proven strategies and real-world case studies.",
     category: "Business",
-    inStock: true,
-    isNew: false
+    inStock: false,
+    isNew: false,
+    isComingSoon: true
   },
   {
-    id: 3,
+    id: 4,
     name: "Content Creation Handbook",
     price: 199,
     originalPrice: 399,
@@ -43,11 +58,12 @@ const products = [
     image: "✍️",
     description: "Master the art of creating engaging content that drives traffic and converts visitors into customers.",
     category: "Content",
-    inStock: true,
-    isNew: false
+    inStock: false,
+    isNew: false,
+    isComingSoon: true
   },
   {
-    id: 4,
+    id: 5,
     name: "SEO Optimization Guide",
     price: 349,
     originalPrice: 699,
@@ -56,11 +72,12 @@ const products = [
     image: "🔍",
     description: "Advanced SEO techniques to improve your website's search engine rankings and organic traffic.",
     category: "Marketing",
-    inStock: true,
-    isNew: true
+    inStock: false,
+    isNew: false,
+    isComingSoon: true
   },
   {
-    id: 5,
+    id: 6,
     name: "Social Media Strategy Kit",
     price: 249,
     originalPrice: 499,
@@ -70,7 +87,8 @@ const products = [
     description: "Comprehensive toolkit for building a strong social media presence and engaging with your audience.",
     category: "Social Media",
     inStock: false,
-    isNew: false
+    isNew: false,
+    isComingSoon: true
   }
 ]
 
@@ -90,6 +108,11 @@ function ProductsPage() {
       (selectedCategory === 'All' || product.category === selectedCategory)
     )
     .sort((a, b) => {
+      // First priority: Available products (inStock: true) come first
+      if (a.inStock && !b.inStock) return -1
+      if (!a.inStock && b.inStock) return 1
+      
+      // Second priority: Apply the selected sort criteria
       switch (sortBy) {
         case 'price-low':
           return a.price - b.price
@@ -143,12 +166,6 @@ function ProductsPage() {
       {/* Page Header */}
       <header className="products-header">
         <div className="products-header-content">
-          <div className="breadcrumb">
-            <Link to="/" className="breadcrumb-link">
-              <ArrowLeft size={16} />
-              Back to Home
-            </Link>
-          </div>
           <h1>Our Products</h1>
           <p>Discover our premium digital products designed to boost your success</p>
         </div>
@@ -196,14 +213,16 @@ function ProductsPage() {
       {/* Products Grid */}
       <main className="products-grid">
         {filteredProducts.map(product => (
-          <div key={product.id} className="product-card">
+          <div key={product.id} className={`product-card ${product.isComingSoon ? 'coming-soon-card' : ''}`}>
             <div className="product-image">
               <span className="product-emoji">{product.image}</span>
               {product.isNew && <span className="new-badge">New</span>}
+              {product.isComingSoon && <span className="coming-soon-badge">Coming Soon</span>}
               <button 
                 className={`favorite-btn ${favorites.includes(product.id) ? 'favorited' : ''}`}
                 onClick={() => toggleFavorite(product.id)}
                 aria-label="Add to favorites"
+                disabled={product.isComingSoon}
               >
                 <Heart size={20} />
               </button>
@@ -225,19 +244,31 @@ function ProductsPage() {
               </div>
               
               <div className="product-price">
-                <span className="current-price">₹{product.price}</span>
-                <span className="original-price">₹{product.originalPrice}</span>
-                <span className="discount">
-                  {Math.round((1 - product.price / product.originalPrice) * 100)}% OFF
-                </span>
+                {product.isComingSoon ? (
+                  <span className="coming-soon-price">Coming Soon</span>
+                ) : (
+                  <>
+                    <span className="current-price">₹{product.price}</span>
+                    {product.originalPrice !== product.price && (
+                      <>
+                        <span className="original-price">₹{product.originalPrice}</span>
+                        <span className="discount">
+                          {Math.round((1 - product.price / product.originalPrice) * 100)}% OFF
+                        </span>
+                      </>
+                    )}
+                  </>
+                )}
               </div>
               
               <button 
-                className={`buy-now-btn ${!product.inStock ? 'out-of-stock' : ''}`}
+                className={`buy-now-btn ${!product.inStock ? 'out-of-stock' : ''} ${product.isComingSoon ? 'coming-soon' : ''}`}
                 onClick={() => buyNow(product)}
-                disabled={!product.inStock}
+                disabled={!product.inStock || product.isComingSoon}
               >
-                {product.inStock ? (
+                {product.isComingSoon ? (
+                  'Coming Soon'
+                ) : product.inStock ? (
                   <>
                     <ShoppingCart size={18} />
                     Buy Now

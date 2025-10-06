@@ -119,7 +119,7 @@ function PaymentPopup({ isOpen, onClose, product, onPaymentSuccess, onPaymentErr
           {!isPaid ? (
             <form onSubmit={handlePaymentInitiation} className="payment-form">
               <div className="product-info">
-                <h3>Digital Success Guide - ₹{ebookPrice}</h3>
+                <h3>Granzia - ₹{ebookPrice}</h3>
                 <p>Complete your purchase to get instant access to the ebook and enter the iPhone giveaway!</p>
               </div>
               

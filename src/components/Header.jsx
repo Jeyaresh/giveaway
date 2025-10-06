@@ -17,7 +17,7 @@ function Header() {
       <div className="header-container">
         <div className="header-brand">
           <BookOpen className="brand-icon" />
-          <span className="brand-text">Digital Success Guide</span>
+          <span className="brand-text">Granzia</span>
         </div>
         
         {/* Desktop Navigation */}
@@ -56,7 +56,7 @@ function Header() {
           <div className="mobile-sidebar-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <BookOpen className="sidebar-brand-icon" />
-              <span className="sidebar-brand-text">Digital Success Guide</span>
+                <span className="sidebar-brand-text">Granzia</span>
             </div>
             <button 
               className="mobile-sidebar-close"

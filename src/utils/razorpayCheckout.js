@@ -126,7 +126,7 @@ export const openRazorpayCheckout = async (amount, participantData, onSuccess, o
       },
       notes: {
         participant_id: participantData.id,
-        product_purchase: 'Digital Success Guide Ebook'
+        product_purchase: 'Granzia Ebook'
       },
       theme: {
         color: '#1e3a8a'

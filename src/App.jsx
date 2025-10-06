@@ -1,28 +1,116 @@
 import { useState, useEffect } from 'react'
 import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom'
-import { BookOpen, Users, Target, CheckCircle, Gift, CreditCard, Loader, Download } from 'lucide-react'
+import { BookOpen, Users, Target, CheckCircle, Gift, CreditCard, Loader, Download, Star, Heart, ShoppingCart, Search, Filter } from 'lucide-react'
 import ParticipantsList from './components/ParticipantsList'
 import TransparencyReport from './pages/TransparencyReport'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import ProductsPage from './pages/ProductsPage'
 import BackToTop from './components/BackToTop'
 import Header from './components/Header'
+import PaymentPopup from './components/PaymentPopup'
 import { openRazorpayCheckout } from './utils/razorpayCheckout'
 import './App.css'
+
+// Product data
+const products = [
+  {
+    id: 1,
+    name: "Unseen Wings",
+    price: 10,
+    originalPrice: 10,
+    rating: 4.9,
+    reviews: 156,
+    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=400&fit=crop&crop=center",
+    description: "Discover hidden potential and soar beyond limitations.",
+    category: "Fiction",
+    inStock: true,
+    isNew: true,
+    isComingSoon: false
+  },
+  {
+    id: 2,
+    name: "Digital Marketing Mastery",
+    price: 299,
+    originalPrice: 599,
+    rating: 4.8,
+    reviews: 124,
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop&crop=center",
+    description: "Complete digital marketing and social media guide.",
+    category: "Marketing",
+    inStock: false,
+    isNew: false,
+    isComingSoon: true
+  },
+  {
+    id: 3,
+    name: "E-commerce Success Blueprint",
+    price: 399,
+    originalPrice: 799,
+    rating: 4.9,
+    reviews: 89,
+    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop&crop=center",
+    description: "Build and scale successful online stores.",
+    category: "Business",
+    inStock: false,
+    isNew: false,
+    isComingSoon: true
+  },
+  {
+    id: 4,
+    name: "Content Creation Handbook",
+    price: 199,
+    originalPrice: 399,
+    rating: 4.7,
+    reviews: 156,
+    image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=400&fit=crop&crop=center",
+    description: "Create engaging content that drives traffic.",
+    category: "Content",
+    inStock: false,
+    isNew: false,
+    isComingSoon: true
+  },
+  {
+    id: 5,
+    name: "SEO Optimization Guide",
+    price: 349,
+    originalPrice: 699,
+    rating: 4.6,
+    reviews: 203,
+    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=300&h=400&fit=crop&crop=center",
+    description: "Advanced SEO techniques for better rankings.",
+    category: "Marketing",
+    inStock: false,
+    isNew: false,
+    isComingSoon: true
+  },
+  {
+    id: 6,
+    name: "Social Media Strategy Kit",
+    price: 249,
+    originalPrice: 499,
+    rating: 4.5,
+    reviews: 178,
+    image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300&h=400&fit=crop&crop=center",
+    description: "Build strong social media presence.",
+    category: "Social Media",
+    inStock: false,
+    isNew: false,
+    isComingSoon: true
+  }
+]
 
 // Main Ebook Sales Page Component
 function EbookSalesPage() {
   const [participants, setParticipants] = useState([])
   const [totalCollected, setTotalCollected] = useState(0)
-  const [participantName, setParticipantName] = useState('')
-  const [participantEmail, setParticipantEmail] = useState('')
-  const [isPaid, setIsPaid] = useState(false)
   const [showParticipants, setShowParticipants] = useState(false)
-  const [isPaymentProcessing, setIsPaymentProcessing] = useState(false)
-  const [paymentError, setPaymentError] = useState('')
-  const [currentParticipantData, setCurrentParticipantData] = useState(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [showDownloadModal, setShowDownloadModal] = useState(false)
+  const [favorites, setFavorites] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [sortBy, setSortBy] = useState('name')
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
 
   const targetAmount = 100000 // ₹1 lakh
   const ebookPrice = 10 // ₹10 for ebook
@@ -69,78 +157,61 @@ function EbookSalesPage() {
     return () => clearInterval(interval);
   }, [])
 
-  const handlePaymentInitiation = (e) => {
-    e.preventDefault()
-    
-    if (!participantName.trim() || !participantEmail.trim()) {
-      setPaymentError('Please fill in all fields')
-      return
-    }
+  const categories = ['All', ...new Set(products.map(product => product.category))]
 
-    // Check if email already exists (this will be double-checked by the backend)
-    // The backend will handle the actual duplicate check against Firebase
+  const filteredProducts = products
+    .filter(product => 
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (selectedCategory === 'All' || product.category === selectedCategory)
+    )
+    .sort((a, b) => {
+      // First priority: Available products (inStock: true) come first
+      if (a.inStock && !b.inStock) return -1
+      if (!a.inStock && b.inStock) return 1
+      
+      // Second priority: Apply the selected sort criteria
+      switch (sortBy) {
+        case 'price-low':
+          return a.price - b.price
+        case 'price-high':
+          return b.price - a.price
+        case 'rating':
+          return b.rating - a.rating
+        default:
+          return a.name.localeCompare(b.name)
+      }
+    })
 
-    // Prepare customer data
-    const customerData = {
-      id: Date.now(),
-      name: participantName,
-      email: participantEmail,
-      amount: ebookPrice
-    }
-
-    // Direct Razorpay payment - open checkout immediately
-    setCurrentParticipantData(customerData)
-    setIsPaymentProcessing(true)
-    setPaymentError('')
-    
-    // Open Razorpay checkout directly with all payment methods
-    openRazorpayCheckout(
-      ebookPrice,
-      customerData,
-      handlePaymentSuccess,
-      handlePaymentError,
-      handlePaymentClose
+  const toggleFavorite = (productId) => {
+    setFavorites(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
     )
   }
 
-  const handlePaymentSuccess = async (response, customerData) => {
-    console.log('Payment successful:', response)
-    
-    // Refresh data from Firebase to get the latest statistics
-    await fetchFirebaseData()
-    
-    setIsPaid(true)
-    setIsPaymentProcessing(false)
-    setPaymentError('')
-    setShowDownloadModal(true)
+  const buyNow = (product) => {
+    setSelectedProduct(product)
+    setShowPaymentPopup(true)
+  }
 
-    // Reset form
-    setParticipantName('')
-    setParticipantEmail('')
-    setCurrentParticipantData(null)
+  const handleClosePopup = () => {
+    setShowPaymentPopup(false)
+    setSelectedProduct(null)
+  }
+
+  const handlePaymentSuccess = (response, customerData) => {
+    console.log('Payment successful:', response)
+    // Refresh data from Firebase to get the latest statistics
+    fetchFirebaseData()
   }
 
   const handlePaymentError = (error) => {
     console.error('Payment failed:', error)
-    setPaymentError(error || 'Payment failed. Please try again.')
-    setIsPaymentProcessing(false)
   }
 
   const handlePaymentClose = () => {
-    setIsPaymentProcessing(false)
-    setPaymentError('')
-  }
-
-  const resetPayment = () => {
-    setIsPaid(false)
-    setShowDownloadModal(false)
-  }
-
-  const downloadEbook = () => {
-    // In a real implementation, this would download the actual ebook file
-    // For now, we'll show a success message
-    alert('Ebook download started! Check your email for the download link.')
-    setShowDownloadModal(false)
+    console.log('Payment popup closed')
   }
 
   // Data security: No clear data functionality - all data is permanently stored for transparency
@@ -165,34 +236,129 @@ function EbookSalesPage() {
 
       {/* Main Header Content */}
       <header className="header">
-        <h1>📚 Digital Success Guide</h1>
-        <p>Buy our premium ebook for ₹10 and get a chance to win an iPhone worth ₹80,000!</p>
+        <h1>📚 Granzia</h1>
+        <p>Discover our premium digital products and get a chance to win an iPhone worth ₹80,000!</p>
       </header>
 
       <main className="main">
-        {/* Product Display */}
-        <div className="product-card">
-          <div className="product-image">
-            <BookOpen size={120} />
+        {/* Filters and Search */}
+        <div className="products-filters">
+          <div className="search-bar">
+            <Search size={20} />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <div className="product-details">
-            <h2>Digital Success Guide</h2>
-            <p className="product-value">Premium Ebook - ₹{ebookPrice}</p>
-            <p className="product-description">
-              A comprehensive guide to digital success, packed with actionable insights and strategies. 
-              Plus, every purchase makes you eligible for our iPhone giveaway!
-            </p>
-            <div className="ebook-features">
-              <h4>What's Inside:</h4>
-              <ul>
-                <li>✅ 50+ pages of expert content</li>
-                <li>✅ Practical strategies and tips</li>
-                <li>✅ Real-world case studies</li>
-                <li>✅ Instant download after purchase</li>
-                <li>✅ Lifetime access to updates</li>
-              </ul>
+          
+          <div className="filter-controls">
+            <div className="filter-group">
+              <Filter size={16} />
+              <select 
+                value={selectedCategory} 
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                {categories.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="filter-group">
+              <select 
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="name">Sort by Name</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="rating">Highest Rated</option>
+              </select>
             </div>
           </div>
+        </div>
+
+        {/* Products Grid */}
+        <div className="products-grid">
+          {filteredProducts.map(product => (
+            <div key={product.id} className={`product-card ${product.isComingSoon ? 'coming-soon-card' : ''}`}>
+              <div className="product-image">
+                <img 
+                  src={product.image} 
+                  alt={product.name}
+                  className="product-book-image"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
+                />
+                <span className="product-emoji-fallback" style={{display: 'none'}}>📚</span>
+                {product.isNew && <span className="new-badge">New</span>}
+                {product.isComingSoon && <span className="coming-soon-badge">Coming Soon</span>}
+                <button 
+                  className={`favorite-btn ${favorites.includes(product.id) ? 'favorited' : ''}`}
+                  onClick={() => toggleFavorite(product.id)}
+                  aria-label="Add to favorites"
+                  disabled={product.isComingSoon}
+                >
+                  <Heart size={20} />
+                </button>
+              </div>
+              
+              <div className="product-info">
+                <div className="product-category">{product.category}</div>
+                <h3 className="product-name">{product.name}</h3>
+                <p className="product-description">{product.description}</p>
+                
+                <div className="product-rating">
+                  <div className="rating-badge">
+                    <Star size={12} />
+                    {product.rating}
+                  </div>
+                  <span className="rating-text">
+                    ({product.reviews.toLocaleString()} reviews)
+                  </span>
+                </div>
+                
+                <div className="product-price">
+                  {product.isComingSoon ? (
+                    <span className="coming-soon-price">Coming Soon</span>
+                  ) : (
+                    <>
+                      <span className="current-price">₹{product.price}</span>
+                      {product.originalPrice !== product.price && (
+                        <>
+                          <span className="original-price">₹{product.originalPrice}</span>
+                          <span className="discount">
+                            {Math.round((1 - product.price / product.originalPrice) * 100)}% OFF
+                          </span>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+                
+                <button 
+                  className={`buy-now-btn ${!product.inStock ? 'out-of-stock' : ''} ${product.isComingSoon ? 'coming-soon' : ''}`}
+                  onClick={() => buyNow(product)}
+                  disabled={!product.inStock || product.isComingSoon}
+                >
+                  {product.isComingSoon ? (
+                    'Coming Soon'
+                  ) : product.inStock ? (
+                    <>
+                      <ShoppingCart size={18} />
+                      Buy Now
+                    </>
+                  ) : (
+                    'Out of Stock'
+                  )}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Progress Section */}
@@ -251,106 +417,25 @@ function EbookSalesPage() {
           </p>
       </div>
 
-        {/* Legal Compliance Notice */}
-        <div className="legal-notice">
-          <div className="legal-badge">
-            <span className="legal-icon">⚖️</span>
-            <span>Legal & Transparent</span>
+        {/* Stats */}
+        <div className="products-stats">
+          <div className="stat-item">
+            <h3>{products.length}</h3>
+            <p>Total Products</p>
           </div>
-          <div className="legal-info">
-            <p>✅ You are purchasing a digital product (ebook)</p>
-            <p>✅ Giveaway entry is a bonus benefit with purchase</p>
-            <p>✅ All transactions are recorded and transparent</p>
-            <p>✅ Winner selection will be random and fair</p>
+          <div className="stat-item">
+            <h3>{categories.length - 1}</h3>
+            <p>Categories</p>
+          </div>
+          <div className="stat-item">
+            <h3>{products.filter(p => p.inStock).length}</h3>
+            <p>Available Now</p>
+          </div>
+          <div className="stat-item">
+            <h3>4.7</h3>
+            <p>Avg Rating</p>
           </div>
         </div>
-
-        {/* Payment Form */}
-        {!isTargetReached && (
-          <div className="payment-section">
-            {!isPaid ? (
-              <form onSubmit={handlePaymentInitiation} className="payment-form">
-                <h3>Buy Ebook - ₹{ebookPrice}</h3>
-                <div className="form-group">
-                  <label htmlFor="name">Full Name</label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={participantName}
-                    onChange={(e) => setParticipantName(e.target.value)}
-                    placeholder="Enter your full name"
-                    required
-                    disabled={isPaymentProcessing}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="email">Email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={participantEmail}
-                    onChange={(e) => setParticipantEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    required
-                    disabled={isPaymentProcessing}
-                  />
-                </div>
-                {paymentError && (
-                  <div className="error-message">
-                    {paymentError}
-                  </div>
-                )}
-                <button 
-                  type="submit" 
-                  className="pay-button"
-                  disabled={isPaymentProcessing}
-                >
-                  {isPaymentProcessing ? (
-                    <>
-                      <Loader className="spinner" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard size={20} />
-                      Buy Ebook for ₹{ebookPrice}
-                    </>
-                  )}
-                </button>
-                <div className="payment-methods">
-                  <p>Payment Methods: Google Pay, PhonePe, Paytm, BHIM & Other UPI Apps</p>
-                </div>
-              </form>
-            ) : (
-              <div className="payment-success">
-                <CheckCircle size={48} className="success-icon" />
-                <h3>Purchase Successful!</h3>
-                <p>You have successfully purchased the ebook and are now eligible for the giveaway.</p>
-                <button onClick={resetPayment} className="reset-button">
-                  Buy Another Copy
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-
-        {/* Download Modal */}
-        {showDownloadModal && (
-          <div className="download-modal">
-            <div className="download-content">
-              <h3>🎉 Purchase Complete!</h3>
-              <p>Your ebook is ready for download. You're also now eligible for our iPhone giveaway!</p>
-              <button onClick={downloadEbook} className="download-button">
-                <Download size={20} />
-                Download Ebook
-              </button>
-              <button onClick={() => setShowDownloadModal(false)} className="close-download">
-                Close
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Customers Section */}
         <div className="participants-section">
@@ -382,7 +467,7 @@ function EbookSalesPage() {
       </main>
 
       <footer className="footer">
-        <p>&copy; 2024 Digital Success Guide. All rights reserved.</p>
+        <p>&copy; 2024 Granzia. All rights reserved.</p>
         <div className="privacy-links">
           <button
             onClick={() => window.open('/#/transparency', '_blank')}
@@ -398,6 +483,16 @@ function EbookSalesPage() {
           </Link>
         </div>
       </footer>
+
+      {/* Payment Popup */}
+      <PaymentPopup
+        isOpen={showPaymentPopup}
+        onClose={handleClosePopup}
+        product={selectedProduct}
+        onPaymentSuccess={handlePaymentSuccess}
+        onPaymentError={handlePaymentError}
+        onPaymentClose={handlePaymentClose}
+      />
       
       <BackToTop />
     </div>
