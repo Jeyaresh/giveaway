@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom'
-import { BookOpen, Users, Target, CheckCircle, Gift, CreditCard, Loader, Download, Menu, X, BarChart3, Home, Shield } from 'lucide-react'
+import { BookOpen, Users, Target, CheckCircle, Gift, CreditCard, Loader, Download, Menu, X, BarChart3, Home, Shield, ShoppingBag } from 'lucide-react'
 import ParticipantsList from './components/ParticipantsList'
 import TransparencyReport from './pages/TransparencyReport'
 import PrivacyPolicy from './pages/PrivacyPolicy'
+import ProductsPage from './pages/ProductsPage'
 import BackToTop from './components/BackToTop'
 import { openRazorpayCheckout } from './utils/razorpayCheckout'
 import './App.css'
@@ -173,6 +174,10 @@ function EbookSalesPage() {
               <Home size={18} />
               <span>Home</span>
             </Link>
+            <Link to="/products" className="nav-link">
+              <ShoppingBag size={18} />
+              <span>Products</span>
+            </Link>
             <Link to="/transparency" className="nav-link">
               <BarChart3 size={18} />
               <span>Transparency Report</span>
@@ -218,6 +223,14 @@ function EbookSalesPage() {
               >
                 <Home size={20} />
                 <span>Home</span>
+              </Link>
+              <Link 
+                to="/products" 
+                className="mobile-nav-link"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <ShoppingBag size={20} />
+                <span>Products</span>
               </Link>
               <Link 
                 to="/transparency" 
@@ -495,6 +508,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<EbookSalesPage />} />
+        <Route path="/products" element={<ProductsPage />} />
         <Route path="/transparency" element={<TransparencyReport />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
       </Routes>
