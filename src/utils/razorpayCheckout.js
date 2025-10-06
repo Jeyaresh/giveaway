@@ -1,5 +1,6 @@
 import { RAZORPAY_CONFIG } from '../config/merchant';
 
+// API Base URL - points to your backend (updated for Vercel deployment)
 const API_BASE_URL = '/api';
 
 // Load Razorpay script
